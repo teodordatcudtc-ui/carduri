@@ -18,10 +18,10 @@ export default function SupportPage() {
             <p className="text-sm text-stone-300">
               For any questions or issues, email us at{" "}
               <a
-                href="mailto:support@stampio.app"
+                href="mailto:teodordatcu.dtc@gmail.com"
                 className="text-brand-400 hover:text-brand-300 underline"
               >
-                support@stampio.app
+                teodordatcu.dtc@gmail.com
               </a>
               .
             </p>
