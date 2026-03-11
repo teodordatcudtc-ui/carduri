@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { EnrollForm } from "./enroll-form";
 
@@ -8,7 +8,7 @@ export default async function EnrollPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = await createServiceClient();
 
   const { data: merchant } = await supabase
     .from("merchants")

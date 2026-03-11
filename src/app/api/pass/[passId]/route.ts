@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   const { passId } = await params;
   if (!passId) return NextResponse.json({ error: "pass_id required" }, { status: 400 });
 
-  const supabase = await createClient();
+  const supabase = await createServiceClient();
   const { data: pass, error } = await supabase
     .from("wallet_passes")
     .select("id, barcode_value, stamp_count, reward_available, merchant_id, program_id")
