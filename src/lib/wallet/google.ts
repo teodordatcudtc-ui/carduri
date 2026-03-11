@@ -1,6 +1,8 @@
 /**
  * Google Wallet API — Loyalty passes (JWT flow).
  * Configure GOOGLE_WALLET_ISSUER_ID and GOOGLE_WALLET_SERVICE_ACCOUNT_JSON in .env.
+ * IMPORTANT: GOOGLE_WALLET_ISSUER_ID must be the numeric Issuer ID (e.g. 33880000000123456789),
+ * not the Merchant ID (BCR...). Find it in Pay & Wallet Console → Google Wallet API.
  * @see https://developers.google.com/wallet/retail/loyalty-cards/use-cases/jwt
  */
 
@@ -79,7 +81,7 @@ export function getAddToGoogleWalletUrl(
         uri: logoUri,
       },
       contentDescription: {
-        defaultValue: { language: "ro-RO", value: data.businessName },
+        defaultValue: { language: "en", value: data.businessName },
       },
     },
     reviewStatus: "UNDER_REVIEW",
@@ -96,23 +98,22 @@ export function getAddToGoogleWalletUrl(
       type: "QR_CODE",
       value: data.objectSuffix,
       alternateText: `${data.stampCount}/${data.stampsRequired}`,
-      format: "QR_CODE",
     },
     loyaltyPoints: {
-      label: "Ștampile",
+      label: "Stamps",
       balance: { int: data.stampCount },
     },
     textModulesData: [
       {
-        header: "Recompensă",
+        header: "Reward",
         body: data.rewardDescription,
         id: "reward",
       },
       ...(data.rewardAvailable
         ? [
             {
-              header: "Felicitări",
-              body: "Ai câștigat recompensa! Arată cardul la casă.",
+              header: "Congratulations",
+              body: "You earned a reward! Show this card at checkout.",
               id: "reward_available",
             },
           ]
@@ -141,6 +142,77 @@ export function getAddToGoogleWalletUrl(
   } catch {
     return null;
   }
+}
+
+/** Build the unsigned JWT payload for debugging (same structure we sign). */
+export function getWalletPayloadForDebug(
+  data: GoogleWalletPassData,
+  origins: string[]
+): Record<string, unknown> | null {
+  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
+  if (!issuerId) return null;
+
+  const classId = `${issuerId}.${safeObjectSuffix(data.classSuffix)}`;
+  const objectId = `${issuerId}.${safeObjectSuffix(data.objectSuffix)}`;
+  const hexColor = data.hexBackgroundColor
+    ? toHexColor(data.hexBackgroundColor)
+    : "#ea751a";
+  const logoUri = data.logoUrl?.trim() || DEFAULT_LOGO;
+
+  const loyaltyClass = {
+    id: classId,
+    issuerName: data.businessName.slice(0, 20),
+    programName: data.programName.slice(0, 20),
+    programLogo: {
+      sourceUri: { uri: logoUri },
+      contentDescription: {
+        defaultValue: { language: "en", value: data.businessName },
+      },
+    },
+    reviewStatus: "UNDER_REVIEW",
+    hexBackgroundColor: hexColor,
+  };
+
+  const loyaltyObject = {
+    id: objectId,
+    classId,
+    state: "ACTIVE",
+    accountName: data.accountName.slice(0, 20),
+    accountId: data.accountId.slice(0, 20),
+    barcode: {
+      type: "QR_CODE",
+      value: data.objectSuffix,
+      alternateText: `${data.stampCount}/${data.stampsRequired}`,
+    },
+    loyaltyPoints: {
+      label: "Stamps",
+      balance: { int: data.stampCount },
+    },
+    textModulesData: [
+      { header: "Reward", body: data.rewardDescription, id: "reward" },
+      ...(data.rewardAvailable
+        ? [
+            {
+              header: "Congratulations",
+              body: "You earned a reward! Show this card at checkout.",
+              id: "reward_available",
+            },
+          ]
+        : []),
+    ],
+  };
+
+  return {
+    iss: "(service account email)",
+    aud: "google",
+    typ: "savetowallet",
+    iat: Math.floor(Date.now() / 1000),
+    origins: origins.length ? origins : ["http://localhost:3000"],
+    payload: {
+      loyaltyClasses: [loyaltyClass],
+      loyaltyObjects: [loyaltyObject],
+    },
+  };
 }
 
 export async function updateGoogleWalletPass(

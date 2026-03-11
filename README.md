@@ -55,6 +55,8 @@ SaaS B2B pentru programe de fidelizare cu ștampile digitale în **Google Wallet
 
 După ce salvezi, linkul „Add to Google Wallet” redirecționează la `https://pay.google.com/gp/v/save/<jwt>` și utilizatorul poate adăuga cardul în Wallet. `origins` în JWT include `NEXT_PUBLIC_APP_URL`; pentru producție adaugă și domeniul real (ex. `https://stampio.ro`).
 
+**Dacă primești „Something went wrong” în Google Wallet:** folosește **Issuer ID numeric** (ex. `33880000000123456789`), **nu** Merchant ID (BCR...). În Pay & Wallet Console → secțiunea **Google Wallet API** caută „Issuer ID” sau „Account ID”; dacă vezi doar Merchant ID, contactează suportul Google Wallet sau verifică documentația de onboarding pentru Issuer ID numeric. Asigură-te că contul de serviciu e adăugat ca **Users** → Invite (Developer) și că adresa de email de test e în „Set up test accounts”.
+
 ### Apple Wallet (stub)
 
 Completează `APPLE_WALLET_PASS_TYPE_ID`, `APPLE_WALLET_TEAM_ID`, `APPLE_WALLET_KEY_ID`, `APPLE_WALLET_PRIVATE_KEY`. Generare .pkpass în `src/lib/wallet/apple.ts` și răspuns în `src/app/api/wallet/apple/add/route.ts`.

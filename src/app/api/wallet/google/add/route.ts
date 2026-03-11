@@ -1,10 +1,14 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { getAddToGoogleWalletUrl } from "@/lib/wallet/google";
+import {
+  getAddToGoogleWalletUrl,
+  getWalletPayloadForDebug,
+} from "@/lib/wallet/google";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const passId = searchParams.get("pass_id");
+  const debug = searchParams.get("debug") === "1";
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const requestOrigin = new URL(request.url).origin;
 
@@ -55,29 +59,40 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${baseUrl}/card/${passId}?wallet=google`);
   }
 
-  const addUrl = getAddToGoogleWalletUrl(
-    {
-      issuerId,
-      classSuffix: merchant.slug || merchant.id.replace(/-/g, "_"),
-      objectSuffix: pass.barcode_value,
-      businessName: merchant.business_name,
-      programName: merchant.business_name,
-      logoUrl: merchant.logo_url,
-      hexBackgroundColor: merchant.brand_color,
-      rewardDescription: program.reward_description,
-      stampsRequired: program.stamps_required,
-      stampCount: pass.stamp_count,
-      rewardAvailable: pass.reward_available,
-      accountName: customer?.full_name || "Client",
-      accountId: customer?.phone || pass.barcode_value,
-    },
-    [
-      requestOrigin,
-      baseUrl,
-      baseUrl.replace("http://", "https://"),
-      "https://stampio.ro",
-    ]
-  );
+  const walletData = {
+    issuerId,
+    classSuffix: merchant.slug || merchant.id.replace(/-/g, "_"),
+    objectSuffix: pass.barcode_value,
+    businessName: merchant.business_name,
+    programName: merchant.business_name,
+    logoUrl: merchant.logo_url,
+    hexBackgroundColor: merchant.brand_color,
+    rewardDescription: program.reward_description,
+    stampsRequired: program.stamps_required,
+    stampCount: pass.stamp_count,
+    rewardAvailable: pass.reward_available,
+    accountName: customer?.full_name || "Client",
+    accountId: customer?.phone || pass.barcode_value,
+  };
+  const origins = [
+    requestOrigin,
+    baseUrl,
+    baseUrl.replace("http://", "https://"),
+    "https://stampio.ro",
+  ];
+
+  const addUrl = getAddToGoogleWalletUrl(walletData, origins);
+
+  if (debug) {
+    const payloadForDebug = getWalletPayloadForDebug(walletData, origins);
+    return NextResponse.json({
+      message:
+        "Open saveUrl in a new tab with DevTools → Network open to see Google's error response.",
+      saveUrl: addUrl || null,
+      payloadForInspection: payloadForDebug,
+      issuerIdUsed: issuerId,
+    });
+  }
 
   if (addUrl) {
     return NextResponse.redirect(addUrl);
