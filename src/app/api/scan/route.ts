@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     if (action === "stamp") {
       const { data: program } = await supabase
         .from("loyalty_programs")
-        .select("stamps_required")
+        .select("stamps_required, reward_description")
         .eq("id", pass.program_id)
         .single();
 
@@ -69,9 +69,9 @@ export async function POST(request: Request) {
 
       await updateGoogleWalletPass(pass.barcode_value, {
         stampCount: newCount,
-        stampsRequired: program.stamps_required,
+        stampsRequired: program?.stamps_required ?? 8,
         rewardAvailable: rewardAvailable,
-        rewardDescription: program.reward_description,
+        rewardDescription: program?.reward_description ?? "",
       }).catch(() => {});
 
       return NextResponse.json({
