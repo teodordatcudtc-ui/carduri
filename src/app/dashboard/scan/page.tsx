@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { ScanLine, Gift, Loader2, Camera } from "lucide-react";
-import { CameraScanner } from "./camera-scanner";
+
+const CameraScanner = dynamic(() => import("./camera-scanner").then((m) => ({ default: m.CameraScanner })), {
+  ssr: false,
+});
 
 export default function ScanPage() {
   const [barcode, setBarcode] = useState("");
@@ -45,6 +49,7 @@ export default function ScanPage() {
 
   const handleScanFromCamera = useCallback(
     (value: string) => {
+      setCameraOpen(false);
       setResult(null);
       doAction("stamp", value);
     },

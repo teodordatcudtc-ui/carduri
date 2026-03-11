@@ -42,10 +42,14 @@ export function CameraScanner({ open, onClose, onScan }: Props) {
         config,
         (decodedText) => {
           if (!decodedText?.trim()) return;
-          scanner.stop().then(() => {
-            scannerRef.current = null;
-            onScan(decodedText.trim());
-            onClose();
+          const value = decodedText.trim();
+          scannerRef.current = null;
+          requestAnimationFrame(() => {
+            try {
+              onScan(value);
+            } catch (e) {
+              console.error("Scan callback error", e);
+            }
           });
         },
         () => {}
