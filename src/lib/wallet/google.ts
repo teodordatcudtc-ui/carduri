@@ -8,8 +8,8 @@
 
 import jwt from "jsonwebtoken";
 
-const DEFAULT_LOGO =
-  "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg";
+/** Fallback logo when merchant has none. Must be a public HTTPS URL that returns an image (no AccessDenied). */
+const DEFAULT_LOGO = "https://placehold.co/256x256/ea751a/ffffff/png?text=S";
 
 export type GoogleWalletPassData = {
   issuerId: string;
@@ -70,7 +70,11 @@ export function getAddToGoogleWalletUrl(
   const hexColor = data.hexBackgroundColor
     ? toHexColor(data.hexBackgroundColor)
     : "#ea751a";
-  const logoUri = data.logoUrl?.trim() || DEFAULT_LOGO;
+  const rawLogo = data.logoUrl?.trim();
+  const logoUri =
+    rawLogo && (rawLogo.startsWith("http://") || rawLogo.startsWith("https://"))
+      ? rawLogo
+      : DEFAULT_LOGO;
 
   const loyaltyClass = {
     id: classId,
@@ -157,7 +161,11 @@ export function getWalletPayloadForDebug(
   const hexColor = data.hexBackgroundColor
     ? toHexColor(data.hexBackgroundColor)
     : "#ea751a";
-  const logoUri = data.logoUrl?.trim() || DEFAULT_LOGO;
+  const rawLogo = data.logoUrl?.trim();
+  const logoUri =
+    rawLogo && (rawLogo.startsWith("http://") || rawLogo.startsWith("https://"))
+      ? rawLogo
+      : DEFAULT_LOGO;
 
   const loyaltyClass = {
     id: classId,

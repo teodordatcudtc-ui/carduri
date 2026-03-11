@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     baseUrl,
     baseUrl.replace("http://", "https://"),
     "https://stampio.ro",
-  ];
+  ].filter((o) => o && (o.startsWith("http://") || o.startsWith("https://")));
 
   const addUrl = getAddToGoogleWalletUrl(walletData, origins);
 
