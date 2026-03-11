@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const passId = searchParams.get("pass_id");
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const requestOrigin = new URL(request.url).origin;
 
   if (!passId) {
     return NextResponse.redirect(new URL("/", baseUrl));
@@ -70,7 +71,12 @@ export async function GET(request: Request) {
       accountName: customer?.full_name || "Client",
       accountId: customer?.phone || pass.barcode_value,
     },
-    [baseUrl, baseUrl.replace("http://", "https://"), "https://stampio.ro"]
+    [
+      requestOrigin,
+      baseUrl,
+      baseUrl.replace("http://", "https://"),
+      "https://stampio.ro",
+    ]
   );
 
   if (addUrl) {

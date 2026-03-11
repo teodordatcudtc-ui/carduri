@@ -9,6 +9,7 @@ function generateBarcode(): string {
 
 export async function POST(request: Request) {
   try {
+    const url = new URL(request.url);
     const body = await request.json();
     const { slug, full_name, phone, email } = body as {
       slug?: string;
@@ -103,7 +104,9 @@ export async function POST(request: Request) {
 
     await supabase.from("stamp_events").insert({ pass_id: pass.id });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const inferredBaseUrl = url.origin;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || inferredBaseUrl || "http://localhost:3000";
     return NextResponse.json({
       barcode_value,
       pass_id: pass.id,

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { QrEnrollBlock } from "./qr-enroll-block";
+import { headers } from "next/headers";
 
 export default async function QrPage() {
   const supabase = await createClient();
@@ -17,7 +18,12 @@ export default async function QrPage() {
 
   if (!merchant) redirect("/dashboard/onboarding");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const inferredBaseUrl = host ? `${proto}://${host}` : null;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || inferredBaseUrl || "http://localhost:3000";
   const enrollUrl = `${baseUrl}/enroll/${merchant.slug}`;
 
   return (
