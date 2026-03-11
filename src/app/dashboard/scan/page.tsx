@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { ScanLine, Gift, Loader2 } from "lucide-react";
+import { ScanLine, Gift, Loader2, Camera } from "lucide-react";
+import { CameraScanner } from "./camera-scanner";
 
 export default function ScanPage() {
   const [barcode, setBarcode] = useState("");
   const [loading, setLoading] = useState<"stamp" | "redeem" | null>(null);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const doAction = useCallback(
-    async (action: "stamp" | "redeem") => {
-      const value = barcode.trim();
+    async (action: "stamp" | "redeem", barcodeOverride?: string) => {
+      const value = (barcodeOverride ?? barcode).trim();
       if (!value) {
         setResult({ ok: false, message: "Introdu sau scanează codul de pe card." });
         return;
@@ -41,17 +43,38 @@ export default function ScanPage() {
     [barcode]
   );
 
+  const handleScanFromCamera = useCallback(
+    (value: string) => {
+      setResult(null);
+      doAction("stamp", value);
+    },
+    [doAction]
+  );
+
   return (
     <div className="p-6 md:p-10 max-w-lg mx-auto">
+      <CameraScanner
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onScan={handleScanFromCamera}
+      />
       <h1 className="text-2xl font-bold text-white mb-2">Scanează card</h1>
       <p className="text-stone-400 mb-6">
-        Introdu codul de pe cardul clientului sau scanează barcode-ul, apoi adaugă
+        Introdu codul de pe cardul clientului sau scanează cu camera, apoi adaugă
         ștampila sau acordă recompensa.
       </p>
       <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setCameraOpen(true)}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white py-3 font-medium transition"
+        >
+          <Camera className="w-5 h-5" />
+          Deschide camera pentru scanare
+        </button>
         <div>
           <label className="block text-sm font-medium text-stone-300 mb-1">
-            Cod card (barcode)
+            Sau introdu codul manual
           </label>
           <input
             ref={inputRef}
