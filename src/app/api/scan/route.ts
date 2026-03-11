@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { updateGoogleWalletPass } from "@/lib/wallet/google";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
 
     const { data: pass } = await supabase
       .from("wallet_passes")
-      .select("id, stamp_count, reward_available, program_id")
+      .select("id, barcode_value, stamp_count, reward_available, program_id")
       .eq("barcode_value", barcode.trim())
       .eq("merchant_id", merchant.id)
       .single();
@@ -66,7 +67,13 @@ export async function POST(request: Request) {
 
       await supabase.from("stamp_events").insert({ pass_id: pass.id });
 
-      // TODO: call Google/Apple Wallet API to update pass visually
+      await updateGoogleWalletPass(pass.barcode_value, {
+        stampCount: newCount,
+        stampsRequired: program.stamps_required,
+        rewardAvailable: rewardAvailable,
+        rewardDescription: program.reward_description,
+      }).catch(() => {});
+
       return NextResponse.json({
         message: `Ștampilă adăugată. (${newCount}${program ? `/${program.stamps_required}` : ""})${rewardAvailable ? " — Recompensă câștigată!" : ""}`,
       });
@@ -79,6 +86,12 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
+
+      const { data: programRedeem } = await supabase
+        .from("loyalty_programs")
+        .select("stamps_required, reward_description")
+        .eq("id", pass.program_id)
+        .single();
 
       const { error: updateError } = await supabase
         .from("wallet_passes")
@@ -93,7 +106,13 @@ export async function POST(request: Request) {
 
       await supabase.from("redemptions").insert({ pass_id: pass.id });
 
-      // TODO: update Google/Apple pass to reset
+      await updateGoogleWalletPass(pass.barcode_value, {
+        stampCount: 0,
+        stampsRequired: programRedeem?.stamps_required ?? 8,
+        rewardAvailable: false,
+        rewardDescription: programRedeem?.reward_description ?? "",
+      }).catch(() => {});
+
       return NextResponse.json({
         message: "Recompensă acordată. Card resetat.",
       });

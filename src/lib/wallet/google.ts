@@ -223,12 +223,114 @@ export function getWalletPayloadForDebug(
   };
 }
 
+const WALLET_OBJECT_SCOPE =
+  "https://www.googleapis.com/auth/wallet_object.issuer";
+
+/** Get OAuth2 access token using service account JWT (for REST API calls). */
+async function getWalletApiAccessToken(
+  serviceAccount: { client_email: string; private_key: string }
+): Promise<string | null> {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    iss: serviceAccount.client_email,
+    sub: serviceAccount.client_email,
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now,
+    exp: now + 3600,
+    scope: WALLET_OBJECT_SCOPE,
+  };
+  try {
+    const assertion = jwt.sign(payload, serviceAccount.private_key, {
+      algorithm: "RS256",
+    });
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion,
+      }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { access_token?: string };
+    return data.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export type UpdateGoogleWalletPassParams = {
+  stampCount: number;
+  stampsRequired: number;
+  rewardAvailable: boolean;
+  rewardDescription: string;
+};
+
+/**
+ * Updates the loyalty pass in Google Wallet (stamp count, reward state).
+ * objectSuffix = barcode_value (same as when creating the pass).
+ */
 export async function updateGoogleWalletPass(
-  _objectId: string,
-  _updates: { stampCount?: number; rewardAvailable?: boolean }
+  objectSuffix: string,
+  updates: UpdateGoogleWalletPassParams
 ): Promise<boolean> {
+  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
   const keyJson = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON;
-  if (!keyJson) return false;
-  // TODO: PATCH https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{objectId}
-  return false;
+  if (!issuerId || !keyJson) return false;
+
+  let serviceAccount: { client_email: string; private_key: string };
+  try {
+    serviceAccount = JSON.parse(keyJson) as {
+      client_email: string;
+      private_key: string;
+    };
+  } catch {
+    return false;
+  }
+  if (!serviceAccount.client_email || !serviceAccount.private_key) return false;
+
+  const accessToken = await getWalletApiAccessToken(serviceAccount);
+  if (!accessToken) return false;
+
+  const resourceId = `${issuerId}.${safeObjectSuffix(objectSuffix)}`;
+  const patchBody = {
+    loyaltyPoints: {
+      label: "Stamps",
+      balance: { int: updates.stampCount },
+    },
+    barcode: {
+      type: "QR_CODE",
+      value: objectSuffix,
+      alternateText: `${updates.stampCount}/${updates.stampsRequired}`,
+    },
+    textModulesData: [
+      {
+        header: "Reward",
+        body: updates.rewardDescription,
+        id: "reward",
+      },
+      ...(updates.rewardAvailable
+        ? [
+            {
+              header: "Congratulations",
+              body: "You earned a reward! Show this card at checkout.",
+              id: "reward_available",
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const res = await fetch(
+    `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/${encodeURIComponent(resourceId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patchBody),
+    }
+  );
+  return res.ok;
 }
