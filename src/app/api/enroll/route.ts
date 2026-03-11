@@ -105,8 +105,11 @@ export async function POST(request: Request) {
     await supabase.from("stamp_events").insert({ pass_id: pass.id });
 
     const inferredBaseUrl = url.origin;
-    const baseUrl =
+    let baseUrl =
       process.env.NEXT_PUBLIC_APP_URL || inferredBaseUrl || "http://localhost:3000";
+    if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+      baseUrl = `https://${baseUrl}`;
+    }
     return NextResponse.json({
       barcode_value,
       pass_id: pass.id,
