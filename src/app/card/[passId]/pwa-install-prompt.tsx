@@ -45,6 +45,7 @@ export function PwaInstallPrompt() {
   if (installed || !deferredPrompt) return null;
 
   async function handleInstallClick() {
+    if (!deferredPrompt) return;
     try {
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
