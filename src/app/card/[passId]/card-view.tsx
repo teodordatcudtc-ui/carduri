@@ -15,6 +15,7 @@ export function CardView({ passId, wallet }: Props) {
     reward_description: string;
     business_name: string;
     brand_color: string;
+    logo_url: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,17 +42,79 @@ export function CardView({ passId, wallet }: Props) {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm space-y-4">
         <div
-          className="rounded-xl border-2 p-6 text-white"
-          style={{ borderColor: data.brand_color, backgroundColor: `${data.brand_color}20` }}
+          className="rounded-2xl border-2 p-5 text-white"
+          style={{
+            borderColor: data.brand_color,
+            backgroundColor: `${data.brand_color}20`,
+          }}
         >
-          <h1 className="text-xl font-bold">{data.business_name}</h1>
-          <p className="text-sm opacity-90 mt-1">
+          <div className="flex items-center gap-3">
+            <div
+              className="h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold overflow-hidden border border-white/40 bg-black/20"
+            >
+              {data.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={data.logo_url}
+                  alt={data.business_name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="px-1 text-center">
+                  {data.business_name.slice(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-white/70">Card fidelitate</p>
+              <h1 className="text-lg font-semibold leading-tight">
+                {data.business_name}
+              </h1>
+            </div>
+          </div>
+
+          <p className="text-xs opacity-90 mt-3">
             {data.reward_description} — {data.stamp_count}/{data.stamps_required} ștampile
           </p>
-          {data.reward_available && (
-            <p className="mt-2 text-amber-300 font-medium">Recompensă disponibilă!</p>
-          )}
-          <div className="mt-4 bg-black/20 rounded-lg p-3 font-mono text-center text-lg tracking-wider break-all">
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {Array.from({ length: data.stamps_required }).map((_, idx) => {
+              const filled = idx < data.stamp_count;
+              return (
+                // index este ok aici pentru o listă statică
+                // eslint-disable-next-line react/no-array-index-key
+                <div
+                  key={idx}
+                  className="h-7 w-7 rounded-full border flex items-center justify-center bg-black/10"
+                  style={{
+                    borderStyle: filled ? "solid" : "dashed",
+                    borderColor: filled ? "white" : "rgba(255,255,255,0.4)",
+                    backgroundColor: filled ? "rgba(0,0,0,0.5)" : "transparent",
+                  }}
+                >
+                  {filled && data.logo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={data.logo_url}
+                      alt="stamp"
+                      className="h-5 w-5 rounded-full object-cover"
+                    />
+                  ) : filled ? (
+                    <div
+                      className="h-4 w-4 rounded-full"
+                      style={{ backgroundColor: data.brand_color }}
+                    />
+                  ) : (
+                    <span className="text-[10px] text-white/60">
+                      {idx + 1}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 bg-black/30 rounded-lg p-3 font-mono text-center text-lg tracking-wider break-all">
             {data.barcode_value}
           </div>
         </div>

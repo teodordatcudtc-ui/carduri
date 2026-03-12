@@ -27,7 +27,7 @@ export async function GET(
 
   const { data: merchant } = await supabase
     .from("merchants")
-    .select("business_name, brand_color")
+    .select("business_name, brand_color, logo_url")
     .eq("id", pass.merchant_id)
     .single();
 
@@ -39,5 +39,6 @@ export async function GET(
     reward_description: program?.reward_description ?? "",
     business_name: merchant?.business_name ?? "",
     brand_color: merchant?.brand_color ?? "#ea751a",
+    logo_url: merchant?.logo_url ?? null,
   });
 }

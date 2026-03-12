@@ -36,6 +36,7 @@ export default async function CardPage() {
         programId={program.id}
         initial={{
           business_name: merchant.business_name,
+          logo_url: merchant.logo_url,
           brand_color: merchant.brand_color,
           stamps_required: program.stamps_required,
           reward_description: program.reward_description,
