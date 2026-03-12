@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Smartphone, Loader2 } from "lucide-react";
 
 type Props = { slug: string; businessName: string; brandColor: string };
@@ -13,6 +14,7 @@ export function EnrollForm({ slug, businessName, brandColor }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{
     barcode_value: string;
+    pass_id?: string;
     add_google_wallet_url: string;
     add_apple_wallet_url: string;
     stamps_required: number;
@@ -78,6 +80,14 @@ export function EnrollForm({ slug, businessName, brandColor }: Props) {
             <Smartphone className="w-5 h-5" />
             Add to Apple Wallet
           </a>
+          {done.pass_id && (
+            <Link
+              href={`/card/${done.pass_id}`}
+              className="mt-2 text-center text-sm text-brand-400 hover:text-brand-300 underline underline-offset-4"
+            >
+              Vezi cardul tău în StampIO
+            </Link>
+          )}
         </div>
       </div>
     );
