@@ -104,20 +104,20 @@ export function getAddToGoogleWalletUrl(
       alternateText: `${data.stampCount}/${data.stampsRequired}`,
     },
     loyaltyPoints: {
-      label: "Stamps",
+      label: "Ștampile",
       balance: { int: data.stampCount },
     },
     textModulesData: [
       {
-        header: "Reward",
-        body: data.rewardDescription,
+        header: "Recompensă",
+        body: `${data.stampCount}/${data.stampsRequired} ștampile — ${data.rewardDescription}`,
         id: "reward",
       },
       ...(data.rewardAvailable
         ? [
             {
-              header: "Congratulations",
-              body: "You earned a reward! Show this card at checkout.",
+              header: "Recompensă disponibilă",
+              body: "Arată acest card la casă pentru a folosi recompensa.",
               id: "reward_available",
             },
           ]
@@ -193,16 +193,20 @@ export function getWalletPayloadForDebug(
       alternateText: `${data.stampCount}/${data.stampsRequired}`,
     },
     loyaltyPoints: {
-      label: "Stamps",
+      label: "Ștampile",
       balance: { int: data.stampCount },
     },
     textModulesData: [
-      { header: "Reward", body: data.rewardDescription, id: "reward" },
+      {
+        header: "Recompensă",
+        body: `${data.stampCount}/${data.stampsRequired} ștampile — ${data.rewardDescription}`,
+        id: "reward",
+      },
       ...(data.rewardAvailable
         ? [
             {
-              header: "Congratulations",
-              body: "You earned a reward! Show this card at checkout.",
+              header: "Recompensă disponibilă",
+              body: "Arată acest card la casă pentru a folosi recompensa.",
               id: "reward_available",
             },
           ]
@@ -295,7 +299,7 @@ export async function updateGoogleWalletPass(
   const resourceId = `${issuerId}.${safeObjectSuffix(objectSuffix)}`;
   const patchBody = {
     loyaltyPoints: {
-      label: "Stamps",
+      label: "Ștampile",
       balance: { int: updates.stampCount },
     },
     barcode: {
@@ -305,15 +309,15 @@ export async function updateGoogleWalletPass(
     },
     textModulesData: [
       {
-        header: "Reward",
-        body: updates.rewardDescription,
+        header: "Recompensă",
+        body: `${updates.stampCount}/${updates.stampsRequired} ștampile — ${updates.rewardDescription}`,
         id: "reward",
       },
       ...(updates.rewardAvailable
         ? [
             {
-              header: "Congratulations",
-              body: "You earned a reward! Show this card at checkout.",
+              header: "Recompensă disponibilă",
+              body: "Arată acest card la casă pentru a folosi recompensa.",
               id: "reward_available",
             },
           ]

@@ -8,6 +8,8 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-gei
 export const metadata: Metadata = {
   title: "StampIO — Carduri de fidelitate digitale",
   description: "Programe de fidelizare cu ștampile în Google Wallet și Apple Wallet.",
+  themeColor: "#ea751a",
+  applicationName: "StampIO",
 };
 
 export default function RootLayout({

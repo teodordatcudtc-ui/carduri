@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Smartphone, Loader2 } from "lucide-react";
+import { PwaInstallPrompt } from "./pwa-install-prompt";
 
 type Props = { passId: string; wallet: string | null };
 
@@ -39,7 +40,7 @@ export function CardView({ passId, wallet }: Props) {
   const appleUrl = `${baseUrl}/api/wallet/apple/add?pass_id=${passId}`;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative">
       <div className="w-full max-w-sm space-y-4">
         <div
           className="rounded-2xl border-2 p-5 text-white"
@@ -150,6 +151,7 @@ export function CardView({ passId, wallet }: Props) {
           </Link>
         </p>
       </div>
+      <PwaInstallPrompt />
     </div>
   );
 }
