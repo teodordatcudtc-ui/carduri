@@ -177,22 +177,6 @@ export function CardView({ passId, wallet }: Props) {
                       customBgColor={data.card_custom_bg_color}
                       customBg2Color={data.card_custom_bg2_color}
                     />
-
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 12,
-                        bottom: 12,
-                        background: "rgba(0,0,0,0.35)",
-                        color: "#FFFFFF",
-                        fontSize: 11,
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(255,255,255,0.18)",
-                      }}
-                    >
-                      Apasă pe card pentru a fi scanat
-                    </div>
                   </div>
 
                   {/* BACK */}
@@ -211,52 +195,31 @@ export function CardView({ passId, wallet }: Props) {
                       background: `linear-gradient(135deg, ${frontBg} 0%, ${backBg} 100%)`,
                     }}
                   >
-                    <div className="w-full flex flex-col items-center gap-3">
-                      <div
-                        className="rounded-lg border p-3 flex justify-center items-center"
-                        style={{
-                          borderColor: "rgba(255,255,255,0.25)",
-                          background: "rgba(255,255,255,0.10)",
-                          width: "100%",
-                          flex: "0 0 auto",
-                        }}
-                      >
-                        {qrDataUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={qrDataUrl} alt="QR pentru angajat (ștampilă)" className="h-40 w-40" />
-                        ) : (
-                          <div
-                            className="h-40 w-40 animate-pulse rounded"
-                            style={{ background: "rgba(255,255,255,0.10)" }}
-                          />
-                        )}
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "rgba(255,255,255,0.95)",
-                          textAlign: "center",
-                          lineHeight: 1.2,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Scanează acest QR pentru ștampilă
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: "rgba(255,255,255,0.75)",
-                          textAlign: "center",
-                        }}
-                      >
-                        (apasă din nou pe card ca să revii)
-                      </div>
+                    <div className="flex items-center justify-center">
+                      {qrDataUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={qrDataUrl}
+                          alt="QR pentru angajat (ștampilă)"
+                          className="h-40 w-40"
+                          style={{ background: "transparent" }}
+                        />
+                      ) : (
+                        <div className="h-40 w-40 animate-pulse rounded" style={{ background: "transparent" }} />
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
+
+              {!showQr && (
+                <div
+                  className="text-center text-xs"
+                  style={{ color: "var(--c-muted)", opacity: 0.9 }}
+                >
+                  Apasă pe card pentru a fi scanat
+                </div>
+              )}
 
               <div
                 className="rounded-lg p-2 font-mono text-center text-[11px] tracking-wide break-all"
