@@ -16,6 +16,7 @@ export function CardView({ passId, wallet }: Props) {
     reward_available: boolean;
     stamps_required: number;
     reward_description: string;
+    card_name: string;
     business_name: string;
     brand_color: string;
     logo_url: string | null;
@@ -162,7 +163,7 @@ export function CardView({ passId, wallet }: Props) {
                     }}
                   >
                     <LoyaltyCard
-                      brand={data.business_name}
+                      brand={data.card_name || data.business_name}
                       holder={data.customer_name || rememberedCustomerName || "Client"}
                       reward={data.reward_description}
                       totalStamps={data.stamps_required}

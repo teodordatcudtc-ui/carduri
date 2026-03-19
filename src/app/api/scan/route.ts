@@ -67,8 +67,25 @@ export async function POST(request: Request) {
         .eq("id", pass.program_id)
         .single();
 
+      const stampsRequired = program?.stamps_required ?? 0;
+
+      // Limitare: dacă recompensa e deja disponibilă (sau am atins pragul),
+      // nu mai lăsăm să crească stamp_count peste [stampsRequired].
+      if (pass.reward_available || pass.stamp_count >= stampsRequired) {
+        return NextResponse.json(
+          {
+            message: "Recompensa este disponibilă. Acordă recompensa sau scanează din nou mai târziu.",
+            reward_available: true,
+            reward_reached: false,
+            stamp_count: Math.min(pass.stamp_count, stampsRequired),
+            stamps_required: stampsRequired,
+          },
+          { status: 400 }
+        );
+      }
+
       const newCount = pass.stamp_count + 1;
-      const rewardAvailable = program ? newCount >= program.stamps_required : false;
+      const rewardAvailable = newCount >= stampsRequired;
 
       const { error: updateError } = await supabase
         .from("wallet_passes")
@@ -91,14 +108,21 @@ export async function POST(request: Request) {
       }).catch(() => {});
 
       return NextResponse.json({
-        message: `Ștampilă adăugată. (${newCount}${program ? `/${program.stamps_required}` : ""})${rewardAvailable ? " — Recompensă câștigată!" : ""}`,
+        message: `Ștampilă adăugată. (${newCount}/${stampsRequired})${rewardAvailable ? " — Recompensă câștigată!" : ""}`,
+        reward_available: rewardAvailable,
+        reward_reached: rewardAvailable && newCount === stampsRequired,
+        stamp_count: newCount,
+        stamps_required: stampsRequired,
       });
     }
 
     if (action === "redeem") {
       if (!pass.reward_available) {
         return NextResponse.json(
-          { error: "Cardul nu are recompensă disponibilă." },
+          {
+            error: "Cardul nu are recompensă disponibilă.",
+            reward_available: false,
+          },
           { status: 400 }
         );
       }

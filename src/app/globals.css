@@ -830,3 +830,71 @@ body {
   margin: var(--s6) 0;
 }
 
+/* ============================================================
+   Dashboard responsive (mobile friendly)
+   ============================================================ */
+@media (max-width: 768px) {
+  .dash-layout {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .dash-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--c-border);
+    flex-direction: column;
+    padding: var(--s4);
+    gap: var(--s2);
+  }
+
+  .dash-sidebar-logo {
+    padding: var(--s3) var(--s3) var(--s2);
+  }
+
+  .dash-main {
+    padding: var(--s4);
+  }
+
+  .dash-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s2);
+    margin-bottom: var(--s4);
+  }
+
+  .dash-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .customers-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-sidebar {
+    padding: var(--s3);
+  }
+
+  .dash-page-title {
+    font-size: 20px;
+  }
+
+  .dash-stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-stat {
+    padding: var(--s3) var(--s4);
+  }
+
+  .dash-stat-num {
+    font-size: 24px;
+  }
+
+  .customers-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

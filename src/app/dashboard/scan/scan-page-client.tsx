@@ -18,15 +18,29 @@ type Program = {
 
 export function ScanPageClient({ programs }: { programs: Program[] }) {
   const [barcode, setBarcode] = useState("");
+  const [lastBarcode, setLastBarcode] = useState<string | null>(null);
   const [selectedProgramId, setSelectedProgramId] = useState(programs[0]?.id ?? "");
   const [loading, setLoading] = useState<"stamp" | "redeem" | null>(null);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{
+    ok: boolean;
+    message: string;
+    reward_available?: boolean;
+    reward_reached?: boolean;
+    stamp_count?: number;
+    stamps_required?: number;
+  } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [rewardBanner, setRewardBanner] = useState<null | {
+    mode: "reached" | "available";
+    stamp_count: number;
+    stamps_required: number;
+  }>(null);
 
   const doAction = useCallback(
     async (action: "stamp" | "redeem", barcodeOverride?: string) => {
-      const value = (barcodeOverride ?? barcode).trim();
+      const candidate = barcodeOverride ?? (barcode.trim() ? barcode : lastBarcode ?? "");
+      const value = candidate.trim();
       if (!value) {
         setResult({ ok: false, message: "Introdu sau scanează codul de pe card." });
         return;
@@ -45,8 +59,50 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
           body: JSON.stringify({ barcode: value, action, program_id: selectedProgramId }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Eroare");
-        setResult({ ok: true, message: data.message });
+        setLastBarcode(value);
+
+        if (action === "redeem" && res.ok) {
+          setRewardBanner(null);
+        }
+
+        if (!res.ok) {
+          if (action === "stamp" && data.reward_available) {
+            setRewardBanner({
+              mode: data.reward_reached ? "reached" : "available",
+              stamp_count: data.stamp_count ?? 0,
+              stamps_required: data.stamps_required ?? 0,
+            });
+          }
+          setResult({
+            ok: false,
+            message: data.error || data.message || "Eroare",
+            reward_available: data.reward_available,
+            reward_reached: data.reward_reached,
+            stamp_count: data.stamp_count,
+            stamps_required: data.stamps_required,
+          });
+          setBarcode("");
+          inputRef.current?.focus();
+          return;
+        }
+
+        setResult({
+          ok: true,
+          message: data.message,
+          reward_available: data.reward_available,
+          reward_reached: data.reward_reached,
+          stamp_count: data.stamp_count,
+          stamps_required: data.stamps_required,
+        });
+
+        if (action === "stamp" && data.reward_available) {
+          setRewardBanner({
+            mode: data.reward_reached ? "reached" : "available",
+            stamp_count: data.stamp_count ?? 0,
+            stamps_required: data.stamps_required ?? 0,
+          });
+        }
+
         setBarcode("");
         inputRef.current?.focus();
       } catch (err: unknown) {
@@ -58,7 +114,7 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
         setLoading(null);
       }
     },
-    [barcode, selectedProgramId]
+    [barcode, selectedProgramId, lastBarcode]
   );
 
   const handleScanFromCamera = useCallback(
@@ -82,6 +138,61 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
         <p className="text-[var(--c-ink-60)] mb-6">
           Alege cardul/recompensa, apoi scanează clientul și acordă ștampila.
         </p>
+
+        {rewardBanner && (
+          <div
+            className="mb-4 rounded-lg p-4"
+            style={{
+              background:
+                rewardBanner.mode === "reached"
+                  ? "rgba(200,75,47,0.10)"
+                  : "rgba(224,150,0,0.10)",
+              border:
+                rewardBanner.mode === "reached"
+                  ? "1px solid rgba(200,75,47,0.25)"
+                  : "1px solid rgba(224,150,0,0.25)",
+              color: rewardBanner.mode === "reached" ? "var(--c-accent)" : "var(--c-amber)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 800,
+                lineHeight: 1.2,
+                marginBottom: 6,
+              }}
+            >
+              {rewardBanner.mode === "reached"
+                ? "Recompensă câștigată!"
+                : "Recompensă disponibilă"}
+            </div>
+            <div style={{ fontSize: 14, opacity: 0.95 }}>
+              Clientul are {rewardBanner.stamp_count}/{rewardBanner.stamps_required} ștampile.
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => doAction("redeem")}
+                disabled={loading !== null}
+                className="btn btn-md btn-accent btn-full"
+              >
+                Acordă recompensa
+              </button>
+              <button
+                type="button"
+                onClick={() => setRewardBanner(null)}
+                disabled={loading !== null}
+                className="btn btn-md btn-outline btn-full"
+              >
+                Acordă mai târziu
+              </button>
+            </div>
+            <div className="mt-2 text-xs" style={{ opacity: 0.9 }}>
+              Dacă alegi „Acordă recompensa”, ștampilele se resetează imediat (card nou). Dacă alegi „Acordă mai târziu”, ștampilele NU se resetează până revendici recompensa.
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">
@@ -152,19 +263,21 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
             )}
             Adaugă ștampilă
           </button>
-          <button
-            type="button"
-            onClick={() => doAction("redeem")}
-            disabled={loading !== null}
-            className="btn btn-md btn-accent btn-full"
-          >
-            {loading === "redeem" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Gift className="w-5 h-5" />
-            )}
-            Acordă recompensa
-          </button>
+          {!rewardBanner && (
+            <button
+              type="button"
+              onClick={() => doAction("redeem")}
+              disabled={loading !== null}
+              className="btn btn-md btn-accent btn-full"
+            >
+              {loading === "redeem" ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Gift className="w-5 h-5" />
+              )}
+              Acordă recompensa
+            </button>
+          )}
         </div>
         </div>
       </div>
