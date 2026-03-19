@@ -93,6 +93,12 @@ export function EnrollForm({
     if (!done?.pass_id) return;
     try {
       localStorage.setItem(rememberKey, done.pass_id);
+      // Salvăm și numele ca să afișăm titularul corect la următoarea vizită
+      // (chiar dacă join-ul din DB e temporar incomplet pe unele browsere).
+      localStorage.setItem(
+        `stampio_pass_customer_${done.pass_id}`,
+        fullName.trim() || "Client"
+      );
     } catch {
       // ignore
     }

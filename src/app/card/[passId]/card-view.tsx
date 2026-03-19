@@ -29,6 +29,8 @@ export function CardView({ passId, wallet }: Props) {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [rememberedCustomerName, setRememberedCustomerName] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -71,6 +73,22 @@ export function CardView({ passId, wallet }: Props) {
   }, [passId]);
 
   useEffect(() => {
+    // Fallback: pe unele telefoane / browsere join-ul customers poate fi temporar gol.
+    // De aceea salvăm numele la înrolare și îl re-afișăm aici dacă e necesar.
+    try {
+      const v = localStorage.getItem(`stampio_pass_customer_${passId}`);
+      if (v) setRememberedCustomerName(v);
+    } catch {
+      // ignore
+    }
+  }, [passId]);
+
+  useEffect(() => {
+    // Când se schimbă cardul, ascundem QR-ul pentru a reveni la "front".
+    setShowQr(false);
+  }, [passId]);
+
+  useEffect(() => {
     QRCode.toDataURL(`STAMPIO:PASS:${passId}`, { width: 220, margin: 2 })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(null));
@@ -91,60 +109,174 @@ export function CardView({ passId, wallet }: Props) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative">
       <div className="w-full max-w-2xl space-y-4">
-        <div className="flex flex-col md:flex-row md:items-start md:gap-8">
-          <div className="flex-1 flex justify-center md:justify-start">
-            <LoyaltyCard
-              brand={data.business_name}
-              holder={data.customer_name || "Client"}
-              reward={data.reward_description}
-              totalStamps={data.stamps_required}
-              filledStamps={data.stamp_count}
-              logoUrl={data.logo_url}
-              accentColor={data.brand_color}
-              rewardAvailable={data.reward_available}
-              template={(data.card_template as any) ?? "minimal"}
-              palette={(data.card_palette as any) ?? "ink"}
-              stampShape={(data.card_stamp_shape as any) ?? "circle"}
-              stampStyle={(data.card_stamp_style as any) ?? "solid"}
-              customBgColor={data.card_custom_bg_color}
-              customBg2Color={data.card_custom_bg2_color}
-            />
-          </div>
+        {(() => {
+          const frontBg = data.card_custom_bg_color ?? data.brand_color;
+          const backBg = data.card_custom_bg2_color ?? frontBg;
 
-          <div className="flex flex-col items-center md:items-start gap-3 md:pt-1">
-            <div
-              className="rounded-lg border p-4 flex justify-center"
-              style={{ borderColor: "var(--c-border)", background: "var(--c-white)" }}
-            >
-              {qrDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={qrDataUrl} alt="QR pentru angajat (ștampilă)" className="h-44 w-44" />
-              ) : (
+          return (
+            <div className="flex flex-col items-center gap-4">
+              <div
+                className="text-sm font-semibold"
+                style={{
+                  color: "var(--c-black)",
+                  background: "rgba(255,255,255,0.55)",
+                  border: "1px solid var(--c-border)",
+                  padding: "8px 14px",
+                  borderRadius: 999,
+                  backdropFilter: "blur(6px)",
+                }}
+              >
+                {data.business_name}
+              </div>
+              <div
+                className="w-[360px] max-w-full"
+                style={{ perspective: 1000 }}
+              >
                 <div
-                  className="h-44 w-44 animate-pulse rounded"
-                  style={{ background: "var(--c-sand-dark)" }}
-                />
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Apasă pe card pentru a afișa codul QR"
+                  onClick={() => setShowQr((v) => !v)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setShowQr((v) => !v);
+                  }}
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    aspectRatio: "340 / 210",
+                    transformStyle: "preserve-3d",
+                    transition: "transform 650ms ease",
+                    transform: showQr ? "rotateY(180deg)" : "rotateY(0deg)",
+                    borderRadius: 16,
+                  }}
+                >
+                  {/* FRONT */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backfaceVisibility: "hidden",
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <LoyaltyCard
+                      brand={data.business_name}
+                      holder={data.customer_name || rememberedCustomerName || "Client"}
+                      reward={data.reward_description}
+                      totalStamps={data.stamps_required}
+                      filledStamps={data.stamp_count}
+                      logoUrl={data.logo_url}
+                      accentColor={data.brand_color}
+                      rewardAvailable={data.reward_available}
+                      template={(data.card_template as any) ?? "minimal"}
+                      palette={(data.card_palette as any) ?? "ink"}
+                      stampShape={(data.card_stamp_shape as any) ?? "circle"}
+                      stampStyle={(data.card_stamp_style as any) ?? "solid"}
+                      customBgColor={data.card_custom_bg_color}
+                      customBg2Color={data.card_custom_bg2_color}
+                    />
+
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 12,
+                        bottom: 12,
+                        background: "rgba(0,0,0,0.35)",
+                        color: "#FFFFFF",
+                        fontSize: 11,
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        border: "1px solid rgba(255,255,255,0.18)",
+                      }}
+                    >
+                      Apasă pe card pentru a fi scanat
+                    </div>
+                  </div>
+
+                  {/* BACK */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backfaceVisibility: "hidden",
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      transform: "rotateY(180deg)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 18,
+                      background: `linear-gradient(135deg, ${frontBg} 0%, ${backBg} 100%)`,
+                    }}
+                  >
+                    <div className="w-full flex flex-col items-center gap-3">
+                      <div
+                        className="rounded-lg border p-3 flex justify-center items-center"
+                        style={{
+                          borderColor: "rgba(255,255,255,0.25)",
+                          background: "rgba(255,255,255,0.10)",
+                          width: "100%",
+                          flex: "0 0 auto",
+                        }}
+                      >
+                        {qrDataUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={qrDataUrl} alt="QR pentru angajat (ștampilă)" className="h-40 w-40" />
+                        ) : (
+                          <div
+                            className="h-40 w-40 animate-pulse rounded"
+                            style={{ background: "rgba(255,255,255,0.10)" }}
+                          />
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "rgba(255,255,255,0.95)",
+                          textAlign: "center",
+                          lineHeight: 1.2,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Scanează acest QR pentru ștampilă
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.75)",
+                          textAlign: "center",
+                        }}
+                      >
+                        (apasă din nou pe card ca să revii)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="rounded-lg p-2 font-mono text-center text-[11px] tracking-wide break-all"
+                style={{ background: "rgba(17,17,16,0.12)", color: "var(--c-muted)" }}
+              >
+                {data.barcode_value}
+              </div>
+
+              {wallet && (
+                <p
+                  className="text-sm text-center"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
+                >
+                  Adăugarea în {wallet === "google" ? "Google" : "Apple"} Wallet va fi disponibilă
+                  după ce comerciantul activează integrarea. Poți folosi codul de mai sus la casă.
+                </p>
               )}
             </div>
-
-            <div
-              className="rounded-lg p-2 font-mono text-center md:text-left text-[11px] tracking-wide break-all"
-              style={{ background: "rgba(17,17,16,0.12)", color: "var(--c-muted)" }}
-            >
-              {data.barcode_value}
-            </div>
-
-            {wallet && (
-              <p
-                className="text-sm text-center md:text-left"
-                style={{ color: "rgba(255,255,255,0.55)" }}
-              >
-                Adăugarea în {wallet === "google" ? "Google" : "Apple"} Wallet va fi disponibilă
-                după ce comerciantul activează integrarea. Poți folosi codul de mai sus la casă.
-              </p>
-            )}
-          </div>
-        </div>
+          );
+        })()}
         <div className="flex flex-col gap-2">
           <a
             href={googleUrl}
