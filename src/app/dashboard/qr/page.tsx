@@ -18,22 +18,34 @@ export default async function QrPage() {
 
   if (!merchant) redirect("/dashboard/onboarding");
 
+  const { data: programs } = await supabase
+    .from("loyalty_programs")
+    .select("id, card_name, reward_description, stamps_required")
+    .eq("merchant_id", merchant.id)
+    .order("created_at", { ascending: true });
+
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "http";
   const inferredBaseUrl = host ? `${proto}://${host}` : null;
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL || inferredBaseUrl || "http://localhost:3000";
-  const enrollUrl = `${baseUrl}/enroll/${merchant.slug}`;
+  const enrollBaseUrl = `${baseUrl}/enroll/${merchant.slug}`;
 
   return (
-    <div className="p-6 md:p-10 max-w-xl">
-      <h1 className="text-2xl font-bold text-white mb-2">QR înrolare</h1>
-      <p className="text-stone-400 mb-6">
+    <div className="max-w-3xl mx-auto">
+      <div className="card card-sm">
+        <h1 className="text-2xl font-bold mb-2">QR înrolare</h1>
+        <p className="text-[var(--c-ink-60)] mb-6">
         Afișează acest QR la casă sau trimite linkul. Clienții scanează, completează
         datele și adaugă cardul în Wallet.
-      </p>
-      <QrEnrollBlock enrollUrl={enrollUrl} businessName={merchant.business_name} />
+        </p>
+      <QrEnrollBlock
+        enrollBaseUrl={enrollBaseUrl}
+        businessName={merchant.business_name}
+        programs={programs ?? []}
+      />
+      </div>
     </div>
   );
 }

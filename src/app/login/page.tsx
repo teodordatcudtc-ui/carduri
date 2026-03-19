@@ -63,32 +63,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <Link href="/" className="text-2xl font-semibold text-brand-400">
+          <Link href="/" className="nav-logo" style={{ justifyContent: "center" }}>
+            <div className="nav-logo-dot" />
             StampIO
           </Link>
-          <p className="mt-2 text-stone-400 text-sm">
-            Autentificare comerciant
-          </p>
+          <p className="mt-2 text-[var(--c-muted)] text-sm">Autentificare comerciant</p>
         </div>
-        <form
-          className="space-y-4 rounded-xl border border-stone-700/50 bg-stone-900/50 p-6"
-          onSubmit={handleSubmit}
-        >
+
+        <form className="space-y-4 card card-sm" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-lg bg-red-500/10 text-red-400 text-sm p-3">
+            <div
+              className="rounded-lg text-sm p-3"
+              style={{
+                background: "rgba(200,75,47,0.08)",
+                color: "var(--c-accent)",
+                border: "1px solid rgba(200,75,47,0.25)",
+              }}
+            >
               {error}
             </div>
           )}
           {message && (
-            <div className="rounded-lg bg-green-500/10 text-green-400 text-sm p-3">
+            <div
+              className="rounded-lg text-sm p-3"
+              style={{
+                background: "rgba(77,124,106,0.10)",
+                color: "var(--c-sage)",
+                border: "1px solid rgba(77,124,106,0.25)",
+              }}
+            >
               {message}
             </div>
           )}
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-stone-300 mb-1">
+            <label htmlFor="email" className="field-label" style={{ display: "block", marginBottom: 6 }}>
               Email
             </label>
             <input
@@ -97,12 +109,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-stone-600 bg-stone-800 px-3 py-2 text-white placeholder-stone-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="field-input"
               placeholder="tu@afacere.ro"
             />
           </div>
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-stone-300 mb-1">
+            <label htmlFor="password" className="field-label" style={{ display: "block", marginBottom: 6 }}>
               Parolă
             </label>
             <input
@@ -111,44 +124,37 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border border-stone-600 bg-stone-800 px-3 py-2 text-white placeholder-stone-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="field-input"
+              placeholder="parola"
             />
           </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white py-2 rounded-lg font-medium transition"
-            >
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <button type="submit" disabled={loading} className="btn btn-md btn-accent" style={{ flex: 1 }}>
               {loading ? "Se încarcă..." : "Autentificare"}
             </button>
-            <button
-              type="button"
-              onClick={handleSignUp}
-              disabled={loading}
-              className="flex-1 border border-stone-600 text-stone-300 hover:border-brand-500 hover:text-brand-400 py-2 rounded-lg font-medium transition"
-            >
+            <button type="button" onClick={handleSignUp} disabled={loading} className="btn btn-md btn-outline" style={{ flex: 1 }}>
               Înregistrare
             </button>
           </div>
-          <div className="relative">
-            <span className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-stone-600" />
-            </span>
-            <span className="relative flex justify-center text-xs text-stone-500">
-              sau
-            </span>
+
+          <div className="flex items-center gap-3" style={{ marginTop: 6 }}>
+            <div className="divider" style={{ flex: 1, margin: 0 }} />
+            <span style={{ fontSize: 11, color: "var(--c-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>sau</span>
+            <div className="divider" style={{ flex: 1, margin: 0 }} />
           </div>
+
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-2 border border-stone-600 text-stone-300 hover:border-stone-500 hover:text-white py-2 rounded-lg font-medium transition"
+            className="btn btn-md btn-outline btn-full"
           >
             Continuă cu Google
           </button>
         </form>
-        <p className="text-center text-stone-500 text-sm">
-          <Link href="/" className="hover:text-stone-400">
+
+        <p className="text-center text-sm">
+          <Link href="/" className="text-[var(--c-muted)] hover:text-[var(--c-black)] transition">
             ← Înapoi la prima pagină
           </Link>
         </p>

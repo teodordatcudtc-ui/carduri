@@ -2,51 +2,170 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-stone-700/50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <span className="text-xl font-semibold text-brand-400">StampIO</span>
-          <nav className="flex gap-4">
-            <Link
-              href="/login"
-              className="text-stone-400 hover:text-white transition"
-            >
-              Autentificare
+    <div className="min-h-screen flex flex-col bg-[var(--c-sand)]">
+      <main className="w-full pb-16 pt-0">
+        <div className="lp-nav">
+          <div className="nav-logo">
+            <div className="nav-logo-dot" />
+            StampIO
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", gap: "var(--s3)" }}>
+            <Link href="/support" className="btn btn-sm btn-outline">
+              Rezervă demo
             </Link>
-            <Link
-              href="/login"
-              className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-medium transition"
-            >
-              Dashboard
+            <Link href="/login" className="btn btn-sm btn-primary">
+              Începe gratuit
             </Link>
-          </nav>
+          </div>
         </div>
-      </header>
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-balance mb-4">
-          Carduri de fidelitate în Google & Apple Wallet
-        </h1>
-        <p className="text-stone-400 text-center max-w-xl mb-10">
-          Fără hârtie, fără card fizic, fără aplicație separată. Configurează
-          programul tău în câteva minute.
-        </p>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Link
-            href="/login"
-            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-xl font-medium transition"
+
+        <section className="lp-hero">
+          <div className="lp-hero-tag">
+            <span>★</span> #1 Loyalty app în România
+          </div>
+          <h1>
+            Fă-ți clienții să <em>se întoarcă</em>
+          </h1>
+          <p>
+            Carduri de fidelitate digitale pentru restaurante și cafenele. Simplu, rapid, fără complicații.
+          </p>
+
+          <div className="lp-hero-cta">
+            <Link href="/login" className="btn btn-xl btn-primary">
+              Începe gratuit — Acum
+            </Link>
+            <Link href="/support" className="btn btn-xl btn-outline">
+              Rezervă Demo
+            </Link>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "var(--s5)",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
           >
-            Începe acum
-          </Link>
-          <Link
-            href="/enroll/demo"
-            className="border border-stone-600 text-stone-300 hover:border-brand-500 hover:text-brand-400 px-6 py-3 rounded-xl font-medium transition"
-          >
-            Vezi cum arată pentru clienți
-          </Link>
+            <div style={{ textAlign: "left" }}>
+              <div className="card" style={{ width: 200, marginBottom: "var(--s4)" }}>
+                <div style={{ fontSize: 11, color: "var(--c-muted)", marginBottom: "var(--s2)" }}>
+                  Medie vizite/client
+                </div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 32, lineHeight: 1, color: "var(--c-black)" }}>
+                  4.2×
+                </div>
+                <div className="stat-card-delta delta-up" style={{ marginTop: 6, fontSize: 11 }}>
+                  ↑ mai mult cu StampIO
+                </div>
+              </div>
+              <div className="card card-sm" style={{ width: 200, display: "flex", alignItems: "center", gap: "var(--s3)" }}>
+                <div style={{ fontSize: 22 }}>☕</div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>Trimite link stamp</div>
+                  <div style={{ fontSize: 11, color: "var(--c-muted)" }}>Via WhatsApp sau QR</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lp-card-preview">
+              <div className="lp-card-logo">☕ Café Floreasca</div>
+              <div className="lp-stamps-grid">
+                {Array.from({ length: 7 }).map((_, idx) => (
+                  <div key={idx} className="lp-stamp-dot active">
+                    ☕
+                  </div>
+                ))}
+                {Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="lp-stamp-dot">
+                    ☕
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div className="lp-card-name">Client fidel</div>
+                <div className="lp-card-holder">Maria Popescu</div>
+              </div>
+              <span className="badge badge-amber" style={{ alignSelf: "flex-start" }}>
+                3 stampe rămase
+              </span>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--s4)" }}>
+              <div className="card card-sm" style={{ textAlign: "center", minWidth: 140 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 28, lineHeight: 1, marginBottom: 4 }}>
+                  2.1K+
+                </div>
+                <div style={{ fontSize: 11, color: "var(--c-muted)" }}>Clienți activi</div>
+              </div>
+              <div
+                className="card card-sm"
+                style={{
+                  background: "var(--c-black)",
+                  borderColor: "var(--c-black)",
+                  textAlign: "center",
+                  minWidth: 140,
+                }}
+              >
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 28, lineHeight: 1, marginBottom: 4, color: "white" }}>
+                  89%
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Rată de retenție</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="brands-bar">
+          <span className="brand-name">Caju</span>
+          <span className="brand-name">Origo</span>
+          <span className="brand-name">Bob Coffee</span>
+          <span className="brand-name">Lente</span>
+          <span className="brand-name">Shift</span>
+          <span className="brand-name">Bran</span>
+        </div>
+
+        <div className="lp-features">
+          <div className="lp-feature">
+            <div className="lp-feature-icon">📲</div>
+            <h3>Carduri digitale</h3>
+            <p>Clienții colecționează ștampile pe telefon. Fără app de instalat — funcționează via link sau QR.</p>
+          </div>
+          <div className="lp-feature">
+            <div className="lp-feature-icon">⚡</div>
+            <h3>Setup în 5 minute</h3>
+            <p>Crează un card, personalizezi designul și trimiți primul link. Gata.</p>
+          </div>
+          <div className="lp-feature">
+            <div className="lp-feature-icon">📊</div>
+            <h3>Analytics real</h3>
+            <p>Vezi cine revine, cât de des și ce recompense sunt cele mai populare.</p>
+          </div>
+        </div>
+
+        <div className="lp-stat-bar">
+          <div className="lp-stat">
+            <span className="lp-stat-num">4.2×</span>
+            <span className="lp-stat-label">Mai multe vizite</span>
+          </div>
+          <div className="lp-stat">
+            <span className="lp-stat-num">89%</span>
+            <span className="lp-stat-label">Rată retenție</span>
+          </div>
+          <div className="lp-stat">
+            <span className="lp-stat-num">5 min</span>
+            <span className="lp-stat-label">Setup complet</span>
+          </div>
+          <div className="lp-stat">
+            <span className="lp-stat-num">2.1K</span>
+            <span className="lp-stat-label">Clienți activi</span>
+          </div>
         </div>
       </main>
-      <footer className="border-t border-stone-700/50 py-6">
-        <div className="max-w-6xl mx-auto px-4 text-center text-stone-500 text-sm">
+
+      <footer className="border-t border-[var(--c-border)] py-6">
+        <div className="text-center text-[var(--c-muted)] text-sm">
           StampIO — Digital Loyalty SaaS
         </div>
       </footer>

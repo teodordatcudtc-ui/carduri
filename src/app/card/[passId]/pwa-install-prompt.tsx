@@ -59,18 +59,27 @@ export function PwaInstallPrompt() {
   }
 
   return (
-    <div className="fixed inset-x-4 bottom-6 z-50 rounded-xl border border-stone-700 bg-stone-900/95 px-4 py-3 shadow-lg shadow-black/40 max-w-sm mx-auto">
-      <p className="text-sm font-medium text-white">
+    <div
+      className="fixed inset-x-4 bottom-6 z-50 rounded-xl border px-4 py-3 shadow-lg max-w-sm mx-auto"
+      style={{
+        background: "rgba(17,17,16,0.95)",
+        borderColor: "rgba(224,217,206,0.25)",
+        borderWidth: 1.5,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+      }}
+    >
+      <p className="text-sm font-medium" style={{ color: "var(--c-white)" }}>
         Instalează cardul pe telefon
       </p>
-      <p className="mt-1 text-xs text-stone-400">
+      <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
         Adaugă StampIO pe ecranul principal ca să vezi cardul rapid și să nu
         îl pierzi.
       </p>
       <button
         type="button"
         onClick={handleInstallClick}
-        className="mt-3 w-full rounded-lg bg-brand-500 hover:bg-brand-600 text-sm font-medium text-white py-2 transition"
+        className="mt-3 w-full btn btn-md"
+        style={{ background: "var(--c-accent)", color: "var(--c-white)", borderRadius: "var(--r-md)" }}
       >
         Instalează aplicația
       </button>

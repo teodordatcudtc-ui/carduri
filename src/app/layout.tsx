@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -8,8 +9,11 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-gei
 export const metadata: Metadata = {
   title: "StampIO — Carduri de fidelitate digitale",
   description: "Programe de fidelizare cu ștampile în Google Wallet și Apple Wallet.",
-  themeColor: "#ea751a",
   applicationName: "StampIO",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ea751a",
 };
 
 export default function RootLayout({
@@ -19,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ro" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen font-sans antialiased">{children}</body>
+      <body className="min-h-screen antialiased">{children}</body>
     </html>
   );
 }

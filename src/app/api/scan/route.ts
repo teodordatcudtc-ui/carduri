@@ -5,13 +5,21 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { barcode, action } = body as { barcode?: string; action?: "stamp" | "redeem" };
+    const { barcode, action, program_id } = body as {
+      barcode?: string;
+      action?: "stamp" | "redeem";
+      program_id?: string;
+    };
     if (!barcode || typeof barcode !== "string" || !action || !["stamp", "redeem"].includes(action)) {
       return NextResponse.json(
         { error: "Lipsește barcode sau action (stamp/redeem)." },
         { status: 400 }
       );
     }
+    const rawCode = barcode.trim();
+    const passIdFromQr = rawCode.startsWith("STAMPIO:PASS:")
+      ? rawCode.replace("STAMPIO:PASS:", "").trim()
+      : null;
 
     const supabase = await createClient();
     const {
@@ -30,17 +38,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Comerciant negăsit." }, { status: 403 });
     }
 
-    const { data: pass } = await supabase
+    const passQuery = supabase
       .from("wallet_passes")
       .select("id, barcode_value, stamp_count, reward_available, program_id")
-      .eq("barcode_value", barcode.trim())
-      .eq("merchant_id", merchant.id)
-      .single();
+      .eq("merchant_id", merchant.id);
+    const { data: pass } = await (passIdFromQr
+      ? passQuery.eq("id", passIdFromQr).single()
+      : passQuery.eq("barcode_value", rawCode).single());
 
     if (!pass) {
       return NextResponse.json(
         { error: "Card negăsit sau nu aparține acestei locații." },
         { status: 404 }
+      );
+    }
+
+    if (program_id && pass.program_id !== program_id) {
+      return NextResponse.json(
+        { error: "Cardul scanat aparține altui program/recompensă." },
+        { status: 400 }
       );
     }
 

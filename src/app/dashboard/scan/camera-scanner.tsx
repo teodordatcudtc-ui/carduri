@@ -85,7 +85,14 @@ export function CameraScanner({ open, onClose, onScan }: Props) {
         </button>
       </div>
       {error && (
-        <div className="mx-4 mb-2 rounded-lg bg-red-500/20 text-red-300 px-3 py-2 text-sm">
+        <div
+          className="mx-4 mb-2 rounded-lg px-3 py-2 text-sm"
+          style={{
+            background: "rgba(200,75,47,0.20)",
+            color: "rgba(255,255,255,0.75)",
+            border: "1px solid rgba(200,75,47,0.25)",
+          }}
+        >
           {error}
         </div>
       )}

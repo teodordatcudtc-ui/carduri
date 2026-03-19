@@ -11,7 +11,9 @@ export async function GET(
   const supabase = await createServiceClient();
   const { data: pass, error } = await supabase
     .from("wallet_passes")
-    .select("id, barcode_value, stamp_count, reward_available, merchant_id, program_id")
+    .select(
+      "id, barcode_value, stamp_count, reward_available, merchant_id, program_id, customers(full_name)"
+    )
     .eq("id", passId)
     .single();
 
@@ -21,7 +23,9 @@ export async function GET(
 
   const { data: program } = await supabase
     .from("loyalty_programs")
-    .select("stamps_required, reward_description")
+    .select(
+      "card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color"
+    )
     .eq("id", pass.program_id)
     .single();
 
@@ -37,8 +41,15 @@ export async function GET(
     reward_available: pass.reward_available,
     stamps_required: program?.stamps_required ?? 0,
     reward_description: program?.reward_description ?? "",
-    business_name: merchant?.business_name ?? "",
-    brand_color: merchant?.brand_color ?? "#ea751a",
+    business_name: program?.card_name ?? merchant?.business_name ?? "",
+    brand_color: program?.card_color ?? merchant?.brand_color ?? "#ea751a",
     logo_url: merchant?.logo_url ?? null,
+    customer_name: pass.customers?.[0]?.full_name ?? "",
+    card_template: program?.card_template ?? null,
+    card_palette: program?.card_palette ?? null,
+    card_stamp_shape: program?.card_stamp_shape ?? null,
+    card_stamp_style: program?.card_stamp_style ?? null,
+    card_custom_bg_color: program?.card_custom_bg_color ?? null,
+    card_custom_bg2_color: program?.card_custom_bg2_color ?? null,
   });
 }

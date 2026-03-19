@@ -11,11 +11,12 @@ export async function POST(request: Request) {
   try {
     const url = new URL(request.url);
     const body = await request.json();
-    const { slug, full_name, phone, email } = body as {
+    const { slug, full_name, phone, email, program_id } = body as {
       slug?: string;
       full_name?: string;
       phone?: string;
       email?: string;
+      program_id?: string;
     };
 
     if (!slug || !full_name || !phone) {
@@ -36,11 +37,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Locație negăsită." }, { status: 404 });
     }
 
-    const { data: program } = await supabase
+    const programQuery = supabase
       .from("loyalty_programs")
       .select("id, stamps_required, reward_description")
-      .eq("merchant_id", merchant.id)
-      .single();
+      .eq("merchant_id", merchant.id);
+
+    const { data: program } = await (program_id
+      ? programQuery.eq("id", program_id).single()
+      : programQuery.order("created_at", { ascending: true }).limit(1).single());
 
     if (!program) {
       return NextResponse.json({ error: "Program negăsit." }, { status: 404 });
@@ -74,7 +78,7 @@ export async function POST(request: Request) {
       .from("wallet_passes")
       .select("id, barcode_value")
       .eq("customer_id", customer.id)
-      .eq("merchant_id", merchant.id)
+      .eq("program_id", program.id)
       .single()
       .then((r) => r.data);
 
@@ -94,15 +98,13 @@ export async function POST(request: Request) {
         merchant_id: merchant.id,
         program_id: program.id,
         barcode_value,
-        stamp_count: 1,
+        stamp_count: 0,
         reward_available: false,
       })
       .select("id")
       .single();
 
     if (passErr) throw passErr;
-
-    await supabase.from("stamp_events").insert({ pass_id: pass.id });
 
     const inferredBaseUrl = url.origin;
     let baseUrl =

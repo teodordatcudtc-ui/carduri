@@ -5,51 +5,61 @@ export default function SupportPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-white">StampIO — Support</h1>
-          <p className="text-sm text-stone-400">
+          <h1 className="type-display-md">StampIO — Support</h1>
+          <p className="text-[var(--c-ink-60)] text-sm">
             Help for merchants using StampIO digital loyalty cards.
           </p>
         </div>
-        <div className="rounded-xl border border-stone-700/50 bg-stone-900/40 p-6 space-y-4">
-          <div>
-            <h2 className="text-sm font-semibold text-white mb-1">
-              Contact email
-            </h2>
-            <p className="text-sm text-stone-300">
-              For any questions or issues, email us at{" "}
-              <a
-                href="mailto:teodordatcu.dtc@gmail.com"
-                className="text-brand-400 hover:text-brand-300 underline"
-              >
-                teodordatcu.dtc@gmail.com
-              </a>
-              .
-            </p>
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-white mb-1">
-              What we can help with
-            </h2>
-            <ul className="list-disc list-inside text-sm text-stone-300 space-y-1">
-              <li>Setting up your loyalty program and QR code</li>
-              <li>Issues adding cards to Google Wallet or Apple Wallet</li>
-              <li>Managing locations, staff access or customer passes</li>
-              <li>Billing or account questions</li>
-            </ul>
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-white mb-1">
-              Response time
-            </h2>
-            <p className="text-sm text-stone-300">
-              We aim to respond to support requests within{" "}
-              <span className="font-semibold">24 hours (business days)</span>.
-            </p>
+
+        <div className="card card-sm" style={{ padding: "var(--s6)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div>
+              <h2 className="type-heading" style={{ fontSize: 14, marginBottom: 6 }}>
+                Contact email
+              </h2>
+              <p className="type-body" style={{ margin: 0 }}>
+                Pentru întrebări sau probleme, scrie-ne la{" "}
+                <a
+                  href="mailto:teodordatcu.dtc@gmail.com"
+                  style={{
+                    color: "var(--c-accent)",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  teodordatcu.dtc@gmail.com
+                </a>
+                .
+              </p>
+            </div>
+
+            <div>
+              <h2 className="type-heading" style={{ fontSize: 14, marginBottom: 6 }}>
+                Cu ce te ajutăm
+              </h2>
+              <ul style={{ margin: 0, paddingLeft: 18, color: "var(--c-ink-60)" }}>
+                <li style={{ marginBottom: 6 }}>Setezi programul loyalty și QR-ul</li>
+                <li style={{ marginBottom: 6 }}>Probleme la adăugarea cardului în Google Wallet / Apple Wallet</li>
+                <li style={{ marginBottom: 6 }}>Locații, acces staff și carduri clienți</li>
+                <li style={{ marginBottom: 6 }}>Billing / întrebări cont</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="type-heading" style={{ fontSize: 14, marginBottom: 6 }}>
+                Răspuns rapid
+              </h2>
+              <p className="type-body" style={{ margin: 0 }}>
+                Ne propunem să răspundem în termen de{" "}
+                <span style={{ fontWeight: 700 }}>24 ore (zile lucrătoare)</span>.
+              </p>
+            </div>
           </div>
         </div>
-        <p className="text-center text-xs text-stone-500">
-          <Link href="/" className="hover:text-stone-300">
-            ← Back to StampIO homepage
+
+        <p className="text-center text-xs" style={{ color: "var(--c-muted)" }}>
+          <Link href="/" className="hover:text-[var(--c-black)] transition" style={{ textDecoration: "none" }}>
+            ← Înapoi la prima pagină
           </Link>
         </p>
       </div>

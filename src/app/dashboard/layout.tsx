@@ -1,7 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, CreditCard, QrCode, Scan, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  CreditCard,
+  QrCode,
+  Scan,
+  Users,
+  LogOut,
+  Settings,
+} from "lucide-react";
 
 export default async function DashboardLayout({
   children,
@@ -21,62 +29,65 @@ export default async function DashboardLayout({
     .single();
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-56 border-r border-stone-700/50 flex flex-col">
-        <div className="p-4 border-b border-stone-700/50">
-          <Link href="/dashboard" className="text-lg font-semibold text-brand-400">
+    <div className="min-h-screen flex bg-[var(--c-sand)]">
+      <div className="dash-layout w-full">
+        <aside className="dash-sidebar">
+          <div className="dash-sidebar-logo">
+            <div className="dash-sidebar-dot" />
             StampIO
-          </Link>
-        </div>
-        <nav className="p-2 flex-1">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-stone-300 hover:bg-stone-800 hover:text-white transition"
+          </div>
+          <nav className="flex-1">
+            <Link href="/dashboard" className="dash-nav-item">
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </Link>
+            {merchant && (
+              <>
+                <Link
+                  href="/dashboard/settings"
+                  className="dash-nav-item"
+                >
+                  <Settings className="w-4 h-4" />
+                  Setări
+                </Link>
+                <Link href="/dashboard/card" className="dash-nav-item">
+                  <CreditCard className="w-4 h-4" />
+                  Card
+                </Link>
+                <Link href="/dashboard/qr" className="dash-nav-item">
+                  <QrCode className="w-4 h-4" />
+                  QR înrolare
+                </Link>
+                <Link href="/dashboard/scan" className="dash-nav-item">
+                  <Scan className="w-4 h-4" />
+                  Scanează
+                </Link>
+                <Link href="/dashboard/staff" className="dash-nav-item">
+                  <Users className="w-4 h-4" />
+                  Angajați
+                </Link>
+              </>
+            )}
+          </nav>
+          <div
+            style={{
+              marginTop: "auto",
+              paddingTop: 12,
+              borderTop: "1px solid var(--c-border)",
+            }}
           >
-            <LayoutDashboard className="w-4 h-4" />
-            Dashboard
-          </Link>
-          {merchant && (
-            <>
-              <Link
-                href="/dashboard/card"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-stone-300 hover:bg-stone-800 hover:text-white transition"
-              >
-                <CreditCard className="w-4 h-4" />
-                Card
-              </Link>
-              <Link
-                href="/dashboard/qr"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-stone-300 hover:bg-stone-800 hover:text-white transition"
-              >
-                <QrCode className="w-4 h-4" />
-                QR înrolare
-              </Link>
-              <Link
-                href="/dashboard/scan"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-stone-300 hover:bg-stone-800 hover:text-white transition"
-              >
-                <Scan className="w-4 h-4" />
-                Scanează
-              </Link>
-            </>
-          )}
-        </nav>
-        <div className="p-2 border-t border-stone-700/50">
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-stone-400 hover:bg-stone-800 hover:text-white transition"
-            >
-              <LogOut className="w-4 h-4" />
-              Deconectare
-            </button>
-          </form>
-        </div>
-      </aside>
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+            <form action="/auth/signout" method="post">
+              <button type="submit" className="btn btn-md btn-ghost">
+                <LogOut className="w-4 h-4" />
+                Deconectare
+              </button>
+            </form>
+          </div>
+        </aside>
+        <main className="dash-main">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
