@@ -36,6 +36,10 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
     stamp_count: number;
     stamps_required: number;
   }>(null);
+  const [rewardPopup, setRewardPopup] = useState<null | {
+    stamp_count: number;
+    stamps_required: number;
+  }>(null);
 
   const doAction = useCallback(
     async (action: "stamp" | "redeem", barcodeOverride?: string) => {
@@ -63,15 +67,24 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
 
         if (action === "redeem" && res.ok) {
           setRewardBanner(null);
+          setRewardPopup(null);
         }
 
         if (!res.ok) {
           if (action === "stamp" && data.reward_available) {
-            setRewardBanner({
-              mode: data.reward_reached ? "reached" : "available",
-              stamp_count: data.stamp_count ?? 0,
-              stamps_required: data.stamps_required ?? 0,
-            });
+            if (data.reward_reached) {
+              setRewardPopup({
+                stamp_count: data.stamp_count ?? 0,
+                stamps_required: data.stamps_required ?? 0,
+              });
+              setRewardBanner(null);
+            } else {
+              setRewardBanner({
+                mode: "available",
+                stamp_count: data.stamp_count ?? 0,
+                stamps_required: data.stamps_required ?? 0,
+              });
+            }
           }
           setResult({
             ok: false,
@@ -96,11 +109,19 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
         });
 
         if (action === "stamp" && data.reward_available) {
-          setRewardBanner({
-            mode: data.reward_reached ? "reached" : "available",
-            stamp_count: data.stamp_count ?? 0,
-            stamps_required: data.stamps_required ?? 0,
-          });
+          if (data.reward_reached) {
+            setRewardPopup({
+              stamp_count: data.stamp_count ?? 0,
+              stamps_required: data.stamps_required ?? 0,
+            });
+            setRewardBanner(null);
+          } else {
+            setRewardBanner({
+              mode: "available",
+              stamp_count: data.stamp_count ?? 0,
+              stamps_required: data.stamps_required ?? 0,
+            });
+          }
         }
 
         setBarcode("");
@@ -138,6 +159,63 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
         <p className="text-[var(--c-ink-60)] mb-6">
           Alege cardul/recompensa, apoi scanează clientul și acordă ștampila.
         </p>
+
+        {rewardPopup && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: "rgba(17,17,16,0.45)", padding: 18 }}
+          >
+            <div
+              className="w-full max-w-md rounded-xl"
+              style={{
+                background: "var(--c-white)",
+                border: "1px solid var(--c-border)",
+                padding: 16,
+                boxShadow: "0 18px 60px rgba(17,17,16,0.25)",
+              }}
+            >
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800 }}>
+                Recompensă câștigată!
+              </div>
+              <div style={{ marginTop: 6, color: "var(--c-ink-60)", fontSize: 14, textAlign: "center" }}>
+                Clientul a atins pragul: {rewardPopup.stamp_count}/{rewardPopup.stamps_required} ștampile.
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRewardPopup(null);
+                    doAction("redeem");
+                  }}
+                  disabled={loading !== null}
+                  className="btn btn-md btn-accent btn-full"
+                >
+                  Acordă recompensa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRewardPopup(null);
+                    setRewardBanner({
+                      mode: "available",
+                      stamp_count: rewardPopup.stamp_count,
+                      stamps_required: rewardPopup.stamps_required,
+                    });
+                  }}
+                  disabled={loading !== null}
+                  className="btn btn-md btn-outline btn-full"
+                >
+                  Acordă mai târziu
+                </button>
+              </div>
+
+              <div className="mt-3 text-xs" style={{ color: "var(--c-muted)", textAlign: "center", opacity: 0.95 }}>
+                Dacă alegi „Acordă mai târziu”, cardul nu se resetează până când revendici recompensa.
+              </div>
+            </div>
+          </div>
+        )}
 
         {rewardBanner && (
           <div
