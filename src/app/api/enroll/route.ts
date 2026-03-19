@@ -83,9 +83,23 @@ export async function POST(request: Request) {
       .then((r) => r.data);
 
     if (existingPass) {
+      const inferredBaseUrl = url.origin;
+      let baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        inferredBaseUrl ||
+        "http://localhost:3000";
+      if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+        baseUrl = `https://${baseUrl}`;
+      }
+
       return NextResponse.json({
         already_enrolled: true,
+        pass_id: existingPass.id,
         barcode_value: existingPass.barcode_value,
+        stamps_required: program.stamps_required,
+        reward_description: program.reward_description,
+        add_google_wallet_url: `${baseUrl}/api/wallet/google/add?pass_id=${existingPass.id}`,
+        add_apple_wallet_url: `${baseUrl}/api/wallet/apple/add?pass_id=${existingPass.id}`,
         message: "Ai deja un card la această locație.",
       });
     }

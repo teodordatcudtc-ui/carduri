@@ -23,7 +23,9 @@ export default async function EnrollPage({
 
   const query = supabase
     .from("loyalty_programs")
-    .select("id, card_name, card_color, stamps_required, reward_description")
+    .select(
+      "id, card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color"
+    )
     .eq("merchant_id", merchant.id);
 
   const { data: program } = await (programId
@@ -72,6 +74,16 @@ export default async function EnrollPage({
           slug={slug}
           programId={program.id}
           cardColor={program.card_color}
+          logoUrl={merchant.logo_url}
+          cardName={program.card_name ?? "Card fidelitate"}
+          stampsRequired={program.stamps_required}
+          rewardDescription={program.reward_description}
+          template={program.card_template}
+          palette={program.card_palette}
+          stampShape={program.card_stamp_shape}
+          stampStyle={program.card_stamp_style}
+          customBgColor={program.card_custom_bg_color}
+          customBg2Color={program.card_custom_bg2_color}
         />
       </div>
     </div>

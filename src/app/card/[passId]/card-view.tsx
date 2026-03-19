@@ -90,51 +90,61 @@ export function CardView({ passId, wallet }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative">
-      <div className="w-full max-w-sm space-y-4">
-        <LoyaltyCard
-          brand={data.business_name}
-          holder={data.customer_name || "Client"}
-          reward={data.reward_description}
-          totalStamps={data.stamps_required}
-          filledStamps={data.stamp_count}
-          logoUrl={data.logo_url}
-          accentColor={data.brand_color}
-          rewardAvailable={data.reward_available}
-          template={(data.card_template as any) ?? "minimal"}
-          palette={(data.card_palette as any) ?? "ink"}
-          stampShape={(data.card_stamp_shape as any) ?? "circle"}
-          stampStyle={(data.card_stamp_style as any) ?? "solid"}
-          customBgColor={data.card_custom_bg_color}
-          customBg2Color={data.card_custom_bg2_color}
-        />
-
-        <div
-          className="rounded-lg border p-4 flex justify-center"
-          style={{ borderColor: "var(--c-border)", background: "var(--c-white)" }}
-        >
-          {qrDataUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={qrDataUrl} alt="QR card" className="h-44 w-44" />
-          ) : (
-            <div
-              className="h-44 w-44 animate-pulse rounded"
-              style={{ background: "var(--c-sand-dark)" }}
+      <div className="w-full max-w-2xl space-y-4">
+        <div className="flex flex-col md:flex-row md:items-start md:gap-8">
+          <div className="flex-1 flex justify-center md:justify-start">
+            <LoyaltyCard
+              brand={data.business_name}
+              holder={data.customer_name || "Client"}
+              reward={data.reward_description}
+              totalStamps={data.stamps_required}
+              filledStamps={data.stamp_count}
+              logoUrl={data.logo_url}
+              accentColor={data.brand_color}
+              rewardAvailable={data.reward_available}
+              template={(data.card_template as any) ?? "minimal"}
+              palette={(data.card_palette as any) ?? "ink"}
+              stampShape={(data.card_stamp_shape as any) ?? "circle"}
+              stampStyle={(data.card_stamp_style as any) ?? "solid"}
+              customBgColor={data.card_custom_bg_color}
+              customBg2Color={data.card_custom_bg2_color}
             />
-          )}
-        </div>
+          </div>
 
-        <div
-          className="mt-2 rounded-lg p-2 font-mono text-center text-[11px] tracking-wide break-all"
-          style={{ background: "rgba(17,17,16,0.12)", color: "var(--c-muted)" }}
-        >
-          {data.barcode_value}
+          <div className="flex flex-col items-center md:items-start gap-3 md:pt-1">
+            <div
+              className="rounded-lg border p-4 flex justify-center"
+              style={{ borderColor: "var(--c-border)", background: "var(--c-white)" }}
+            >
+              {qrDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={qrDataUrl} alt="QR pentru angajat (ștampilă)" className="h-44 w-44" />
+              ) : (
+                <div
+                  className="h-44 w-44 animate-pulse rounded"
+                  style={{ background: "var(--c-sand-dark)" }}
+                />
+              )}
+            </div>
+
+            <div
+              className="rounded-lg p-2 font-mono text-center md:text-left text-[11px] tracking-wide break-all"
+              style={{ background: "rgba(17,17,16,0.12)", color: "var(--c-muted)" }}
+            >
+              {data.barcode_value}
+            </div>
+
+            {wallet && (
+              <p
+                className="text-sm text-center md:text-left"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+              >
+                Adăugarea în {wallet === "google" ? "Google" : "Apple"} Wallet va fi disponibilă
+                după ce comerciantul activează integrarea. Poți folosi codul de mai sus la casă.
+              </p>
+            )}
+          </div>
         </div>
-        {wallet && (
-          <p className="text-sm text-center" style={{ color: "rgba(255,255,255,0.55)" }}>
-            Adăugarea în {wallet === "google" ? "Google" : "Apple"} Wallet va fi disponibilă
-            după ce comerciantul activează integrarea. Poți folosi codul de mai sus la casă.
-          </p>
-        )}
         <div className="flex flex-col gap-2">
           <a
             href={googleUrl}
