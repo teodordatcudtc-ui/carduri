@@ -233,14 +233,12 @@ export function CardView({ passId, wallet }: Props) {
                 </div>
               </div>
 
-              {!showQr && (
-                <div
-                  className="text-center text-xs"
-                  style={{ color: "var(--c-muted)", opacity: 0.9 }}
-                >
-                  Apasă pe card pentru a fi scanat
-                </div>
-              )}
+              <div
+                className="text-center text-xs"
+                style={{ color: "var(--c-muted)", opacity: 0.9 }}
+              >
+                Apasă pe card pentru a fi scanat
+              </div>
 
               <div
                 className="rounded-lg p-2 font-mono text-center text-[11px] tracking-wide break-all"
