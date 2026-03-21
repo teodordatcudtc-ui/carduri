@@ -6,10 +6,14 @@ import { createClient } from "@/lib/supabase/client";
 import { slugify } from "@/lib/utils";
 
 const STEPS = [
-  { id: 1, title: "Afacerea ta" },
-  { id: 2, title: "Configurare card" },
+  { id: 1, title: "Date afacere" },
+  { id: 2, title: "Primul card" },
   { id: 3, title: "Gata" },
 ];
+
+const DEFAULT_CARD_PRIMARY = "#ea751a";
+const DEFAULT_CARD_SECONDARY = "#c84b2f";
+const DEFAULT_CARD_TERTIARY = "#3d2a5c";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -18,7 +22,7 @@ export default function OnboardingPage() {
   const [form, setForm] = useState({
     business_name: "",
     slug: "",
-    brand_color: "#ea751a",
+    brand_color: DEFAULT_CARD_PRIMARY,
     stamps_required: 8,
     reward_description: "Recompensă gratuită",
   });
@@ -91,7 +95,6 @@ export default function OnboardingPage() {
             .from("loyalty_programs")
             .update({
               card_name: "Card fidelitate",
-              card_color: form.brand_color,
               stamps_required: form.stamps_required,
               reward_description:
                 form.reward_description.trim() || "Recompensă gratuită",
@@ -105,7 +108,11 @@ export default function OnboardingPage() {
             .insert({
               merchant_id: merchantId,
               card_name: "Card fidelitate",
-              card_color: form.brand_color,
+              card_color: DEFAULT_CARD_PRIMARY,
+              card_custom_bg_color: DEFAULT_CARD_PRIMARY,
+              card_custom_bg2_color: DEFAULT_CARD_SECONDARY,
+              card_custom_bg3_color: DEFAULT_CARD_TERTIARY,
+              card_palette: "custom",
               stamps_required: form.stamps_required,
               reward_description:
                 form.reward_description.trim() || "Recompensă gratuită",
@@ -131,7 +138,11 @@ export default function OnboardingPage() {
           .insert({
             merchant_id: merchant.id,
             card_name: "Card fidelitate",
-            card_color: form.brand_color,
+            card_color: DEFAULT_CARD_PRIMARY,
+            card_custom_bg_color: DEFAULT_CARD_PRIMARY,
+            card_custom_bg2_color: DEFAULT_CARD_SECONDARY,
+            card_custom_bg3_color: DEFAULT_CARD_TERTIARY,
+            card_palette: "custom",
             stamps_required: form.stamps_required,
             reward_description:
               form.reward_description.trim() || "Recompensă gratuită",
@@ -164,9 +175,16 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <h1 className="type-display-md mb-6">
-          Configurare {STEPS[step - 1].title}
+        <h1 className="type-display-md mb-2">
+          {STEPS[step - 1].title}
         </h1>
+        {step < 3 && (
+          <p className="text-[var(--c-ink-60)] text-sm mb-6">
+            {step === 1
+              ? "Numele și link-ul de înrolare. Culorile cardului le alegi în pagina Configurare card; culoarea brandului pentru aplicație o poți seta în Setări companie."
+              : "Regulile primului program de loyalty. Designul îl personalizezi în dashboard la Card."}
+          </p>
+        )}
 
         {error && (
           <div
@@ -210,34 +228,6 @@ export default function OnboardingPage() {
               <p className="field-hint" style={{ marginTop: -4 }}>
                 Link înrolare: .../enroll/{form.slug || "slug"}
               </p>
-            </div>
-
-            <div className="field-group" style={{ width: "100%" }}>
-              <label className="field-label" style={{ display: "block" }}>
-                Culoare brand
-              </label>
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <input
-                  type="color"
-                  value={form.brand_color}
-                  onChange={(e) => update({ brand_color: e.target.value })}
-                  style={{
-                    height: 42,
-                    width: 56,
-                    borderRadius: "var(--r-md)",
-                    border: "1.5px solid var(--c-border)",
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                />
-                <input
-                  type="text"
-                  value={form.brand_color}
-                  onChange={(e) => update({ brand_color: e.target.value })}
-                  className="field-input font-mono"
-                  style={{ flex: 1 }}
-                />
-              </div>
             </div>
 
             <button onClick={handleStep1} className="btn btn-accent btn-full">

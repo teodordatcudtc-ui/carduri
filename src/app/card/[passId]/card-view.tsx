@@ -27,6 +27,16 @@ export function CardView({ passId, wallet }: Props) {
     card_stamp_style?: string | null;
     card_custom_bg_color?: string | null;
     card_custom_bg2_color?: string | null;
+    card_custom_bg3_color?: string | null;
+    card_layout?: string | null;
+    card_noise?: boolean;
+    card_mesh_gradient?: boolean;
+    card_footer_color?: string | null;
+    card_badge_color?: string | null;
+    card_badge_letter?: string | null;
+    card_stamp_variant?: string | null;
+    card_stamp_empty_icon?: string | null;
+    card_stamp_filled_icon?: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -177,6 +187,16 @@ export function CardView({ passId, wallet }: Props) {
                       stampStyle={(data.card_stamp_style as any) ?? "solid"}
                       customBgColor={data.card_custom_bg_color}
                       customBg2Color={data.card_custom_bg2_color}
+                      customBg3Color={data.card_custom_bg3_color}
+                      layout={(data.card_layout === "hero" ? "hero" : "compact") as "compact" | "hero"}
+                      noise={!!data.card_noise}
+                      meshGradient={!!data.card_mesh_gradient}
+                      footerColor={data.card_footer_color}
+                      badgeColor={data.card_badge_color}
+                      badgeLetter={data.card_badge_letter}
+                      stampVariant={(data.card_stamp_variant === "contrast" ? "contrast" : "brand") as "brand" | "contrast"}
+                      emptyStampIcon={data.card_stamp_empty_icon ?? "coffee"}
+                      filledStampIcon={data.card_stamp_filled_icon ?? "check"}
                     />
                   </div>
 

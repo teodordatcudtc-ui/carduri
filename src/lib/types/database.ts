@@ -32,6 +32,16 @@ export interface LoyaltyProgram {
   card_stamp_style?: string | null;
   card_custom_bg_color?: string | null;
   card_custom_bg2_color?: string | null;
+  card_custom_bg3_color?: string | null;
+  card_layout?: string | null;
+  card_noise?: boolean | null;
+  card_mesh_gradient?: boolean | null;
+  card_footer_color?: string | null;
+  card_badge_color?: string | null;
+  card_badge_letter?: string | null;
+  card_stamp_variant?: string | null;
+  card_stamp_empty_icon?: string | null;
+  card_stamp_filled_icon?: string | null;
   stamps_required: number;
   reward_description: string;
   google_pass_class_id: string | null;

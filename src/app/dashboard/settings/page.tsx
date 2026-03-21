@@ -17,17 +17,13 @@ export default async function SettingsPage() {
 
   if (!merchant) redirect("/dashboard/onboarding");
 
+  const userEmail = user.email ?? "";
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="card card-sm space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Setări companie</h1>
-          <p className="text-[var(--c-ink-60)] mb-6">
-            Numele și logo-ul sunt folosite pe toate cardurile tale.
-          </p>
-        </div>
+    <div className="dash-settings-wrap w-full">
       <CompanyForm
         merchantId={merchant.id}
+        userEmail={userEmail}
         initial={{
           business_name: merchant.business_name,
           logo_url: merchant.logo_url,
@@ -35,8 +31,6 @@ export default async function SettingsPage() {
           address: merchant.address ?? null,
         }}
       />
-      </div>
     </div>
   );
 }
-

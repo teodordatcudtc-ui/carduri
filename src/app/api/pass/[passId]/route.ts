@@ -24,7 +24,7 @@ export async function GET(
   const { data: program } = await supabase
     .from("loyalty_programs")
     .select(
-      "card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color"
+      "card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color, card_custom_bg3_color, card_layout, card_noise, card_mesh_gradient, card_footer_color, card_badge_color, card_badge_letter, card_stamp_variant, card_stamp_empty_icon, card_stamp_filled_icon"
     )
     .eq("id", pass.program_id)
     .single();
@@ -52,5 +52,15 @@ export async function GET(
     card_stamp_style: program?.card_stamp_style ?? null,
     card_custom_bg_color: program?.card_custom_bg_color ?? null,
     card_custom_bg2_color: program?.card_custom_bg2_color ?? null,
+    card_custom_bg3_color: program?.card_custom_bg3_color ?? null,
+    card_layout: program?.card_layout ?? null,
+    card_noise: program?.card_noise ?? false,
+    card_mesh_gradient: program?.card_mesh_gradient ?? false,
+    card_footer_color: program?.card_footer_color ?? null,
+    card_badge_color: program?.card_badge_color ?? null,
+    card_badge_letter: program?.card_badge_letter ?? null,
+    card_stamp_variant: program?.card_stamp_variant ?? null,
+    card_stamp_empty_icon: program?.card_stamp_empty_icon ?? null,
+    card_stamp_filled_icon: program?.card_stamp_filled_icon ?? null,
   });
 }

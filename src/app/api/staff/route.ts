@@ -1,9 +1,10 @@
-import { createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createServiceClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -29,8 +30,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Comerciant negăsit." }, { status: 404 });
     }
 
-    const adminClient = supabase.auth.admin;
-    const createUserRes = await adminClient.createUser({
+    let admin;
+    try {
+      admin = createServiceRoleSupabase();
+    } catch (e) {
+      console.error("[api/staff] service role:", e);
+      return NextResponse.json(
+        { error: "Server misconfigurat: lipsește SUPABASE_SERVICE_ROLE_KEY în .env.local." },
+        { status: 500 }
+      );
+    }
+
+    const createUserRes = await admin.auth.admin.createUser({
       email: email.trim().toLowerCase(),
       password,
       email_confirm: true,
@@ -42,7 +53,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { error: staffErr } = await supabase.from("merchant_staff").insert({
+    const { error: staffErr } = await admin.from("merchant_staff").insert({
       merchant_id: merchant.id,
       user_id: createUserRes.data.user.id,
       role: "staff",

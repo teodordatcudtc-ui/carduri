@@ -1,7 +1,54 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CreditCard, QrCode, Scan, Users } from "lucide-react";
+import {
+  CreditCard,
+  ChevronRight,
+  Download,
+  Scan,
+  Plus,
+  Star,
+  Users,
+} from "lucide-react";
+import { DashboardOnboardingBanner } from "./dashboard-banner";
+
+const THUMB_BG = ["#1E1B18", "#F26545", "#3B82C4", "#27AE60", "#7C3AED"];
+
+function maskPhone(phone: string) {
+  const d = phone.replace(/\D/g, "");
+  if (d.length < 6) return phone;
+  return `${phone.slice(0, 8)} xxx xxx`;
+}
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function greetingLabel(h: number) {
+  if (h < 12) return "Bună dimineața";
+  if (h < 18) return "Bună ziua";
+  return "Bună seara";
+}
+
+function rowStatus(
+  reward: boolean,
+  stamps: number,
+  required: number,
+  updatedAt: string
+): { cls: string; label: string } {
+  if (reward) return { cls: "dash-badge dash-badge-green", label: "Recompensă" };
+  const days = (Date.now() - new Date(updatedAt).getTime()) / (86400000);
+  if (days > 30) return { cls: "dash-badge dash-badge-inactive", label: "Inactiv" };
+  if (required > 0 && stamps >= required - 1 && stamps < required) {
+    return { cls: "dash-badge dash-badge-coral", label: "Aproape" };
+  }
+  return { cls: "dash-badge dash-badge-neutral", label: "Activ" };
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -18,27 +65,28 @@ export default async function DashboardPage() {
 
   if (!merchant) redirect("/dashboard/onboarding");
 
-  const [{ count: customersCount }, { count: passesCount }] = await Promise.all([
-    supabase.from("customers").select("id", { count: "exact", head: true }).eq("merchant_id", merchant.id),
-    supabase.from("wallet_passes").select("id", { count: "exact", head: true }).eq("merchant_id", merchant.id),
-  ]);
-
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString();
   const startOfMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const { data: passes } = await supabase
-    .from("wallet_passes")
-    .select(
-      "id, barcode_value, stamp_count, reward_available, updated_at, program:loyalty_programs(stamps_required, card_color, card_name), customers(full_name, phone)"
-    )
-    .eq("merchant_id", merchant.id)
-    .order("updated_at", { ascending: false })
-    .limit(50);
+  const [
+    { count: customersCount },
+    { count: passesCount },
+    { count: customersAddedMonth },
+  ] = await Promise.all([
+    supabase.from("customers").select("id", { count: "exact", head: true }).eq("merchant_id", merchant.id),
+    supabase.from("wallet_passes").select("id", { count: "exact", head: true }).eq("merchant_id", merchant.id),
+    supabase
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("merchant_id", merchant.id)
+      .gte("created_at", startOfMonth),
+  ]);
+
   const { data: programs } = await supabase
     .from("loyalty_programs")
-    .select("id, card_name, stamps_required, reward_description, updated_at")
+    .select("id, card_name, stamps_required, reward_description")
     .eq("merchant_id", merchant.id)
     .order("created_at", { ascending: true });
 
@@ -49,21 +97,42 @@ export default async function DashboardPage() {
     .gte("created_at", startOfMonth)
     .order("created_at", { ascending: true });
 
-  const { data: redemptions } = await supabase
-    .from("redemptions")
-    .select("redeemed_at, wallet_passes!inner(merchant_id)")
-    .eq("wallet_passes.merchant_id", merchant.id)
-    .gte("redeemed_at", startOfMonth);
+  const { data: allPassesRows } = await supabase
+    .from("wallet_passes")
+    .select("program_id")
+    .eq("merchant_id", merchant.id);
+
+  const { data: recentRows } = await supabase
+    .from("wallet_passes")
+    .select(
+      `
+      id,
+      stamp_count,
+      reward_available,
+      updated_at,
+      customers ( full_name, phone ),
+      loyalty_programs ( card_name, stamps_required )
+    `
+    )
+    .eq("merchant_id", merchant.id)
+    .order("updated_at", { ascending: false })
+    .limit(5);
 
   const stampsToday = (stampEvents ?? []).filter((e) => e.created_at >= startOfToday).length;
-  const stampsWeek = (stampEvents ?? []).filter((e) => e.created_at >= startOfWeek).length;
+  const stampsYesterday = (stampEvents ?? []).filter(
+    (e) => e.created_at >= startOfYesterday && e.created_at < startOfToday
+  ).length;
   const stampsMonth = (stampEvents ?? []).length;
-  const redemptionsMonth = (redemptions ?? []).length;
+
+  const countByProgram = new Map<string, number>();
+  for (const r of allPassesRows ?? []) {
+    countByProgram.set(r.program_id, (countByProgram.get(r.program_id) ?? 0) + 1);
+  }
 
   const chartDays = Array.from({ length: 30 }).map((_, i) => {
     const d = new Date(now.getTime() - (29 - i) * 24 * 60 * 60 * 1000);
     const key = d.toISOString().slice(0, 10);
-    return { key, label: `${d.getDate()}/${d.getMonth() + 1}`, count: 0 };
+    return { key, label: "", count: 0, isToday: i === 29 };
   });
   const chartMap = new Map(chartDays.map((d) => [d.key, d]));
   (stampEvents ?? []).forEach((e) => {
@@ -72,205 +141,340 @@ export default async function DashboardPage() {
     if (item) item.count += 1;
   });
   const maxChartCount = Math.max(1, ...chartDays.map((d) => d.count));
-  const lastVisitByPassId = new Map<string, string>();
-  (stampEvents ?? []).forEach((e) => {
-    const previous = lastVisitByPassId.get(e.pass_id);
-    if (!previous || previous < e.created_at) {
-      lastVisitByPassId.set(e.pass_id, e.created_at);
-    }
-  });
+
+  const cc = customersCount ?? 0;
+  const pc = passesCount ?? 0;
+  const visitsMetric = cc > 0 ? (stampsMonth / cc).toFixed(1) : "0";
+  const visitsDisplay = `${visitsMetric}×`;
+
+  const dateLine = new Intl.DateTimeFormat("ro-RO", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(now);
+
+  const showBanner = cc === 0 && stampsMonth === 0;
+
+  const avClasses = ["av-c", "av-b", "av-y", "av-n"];
 
   return (
     <div>
-      <div className="dash-topbar">
-        <div className="dash-page-title">Bun venit, {merchant.business_name}</div>
-        <span className="badge badge-default">{merchant.business_name}</span>
-        <Link href="/dashboard/scan" className="btn btn-md btn-accent">
-          <Scan className="w-4 h-4" />
-          Scanează
+      <DashboardOnboardingBanner show={showBanner} />
+
+      <div className="mb-6">
+        <div className="font-display text-[28px] font-semibold leading-none tracking-tight text-ink">
+          {greetingLabel(now.getHours())}, {merchant.business_name} ☀️
+        </div>
+        <p className="mt-1 text-[13px] text-ink-muted">
+          {dateLine.charAt(0).toUpperCase() + dateLine.slice(1)} · Iată ce se întâmplă azi
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="dash-stat-v2">
+          <div className="dash-stat-v2-label">
+            <Users className="h-3 w-3" strokeWidth={2.5} aria-hidden />
+            Clienți înrolați
+          </div>
+          <div className="dash-stat-v2-value">{cc}</div>
+          {(customersAddedMonth ?? 0) > 0 && (
+            <div className="dash-stat-delta up">↑ +{customersAddedMonth} luna aceasta</div>
+          )}
+          {(customersAddedMonth ?? 0) === 0 && (
+            <div className="dash-stat-delta neutral">—</div>
+          )}
+        </div>
+        <div className="dash-stat-v2">
+          <div className="dash-stat-v2-label">
+            <CreditCard className="h-3 w-3" strokeWidth={2.5} aria-hidden />
+            Carduri active
+          </div>
+          <div className="dash-stat-v2-value">{pc}</div>
+          <div className="dash-stat-delta neutral">
+            {cc > 0 ? `din ${cc} înrolați` : "—"}
+          </div>
+        </div>
+        <div className="dash-stat-v2">
+          <div className="dash-stat-v2-label">
+            <Star className="h-3 w-3" strokeWidth={2.5} aria-hidden />
+            Ștampile azi
+          </div>
+          <div className="dash-stat-v2-value">{stampsToday}</div>
+          {(() => {
+            const d = stampsToday - stampsYesterday;
+            if (stampsToday === 0 && stampsYesterday === 0) {
+              return <div className="dash-stat-delta neutral">—</div>;
+            }
+            return (
+              <div className={`dash-stat-delta ${d > 0 ? "up" : "neutral"}`}>
+                {d > 0 ? `↑ +${d} față de ieri` : d === 0 ? "La fel ca ieri" : `${d} față de ieri`}
+              </div>
+            );
+          })()}
+        </div>
+        <div className="dash-stat-v2 dash-stat-v2-accent">
+          <div className="dash-stat-v2-label">
+            <span className="inline opacity-90">Vizite recurente</span>
+          </div>
+          <div className="dash-stat-v2-value dash-stat-v2-value-accent">{visitsDisplay}</div>
+          <div className="dash-stat-delta dash-stat-delta-accent">față de medie</div>
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <Link
+          href="/dashboard/scan"
+          className="dash-qa group no-underline"
+        >
+          <div className="dash-qa-icon">
+            <Scan className="h-[18px] w-[18px] text-coral" strokeWidth={2} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[13px] font-bold text-ink">Scanează client</div>
+            <div className="text-[11px] text-ink-muted">Adaugă ștampilă rapid</div>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-15 group-hover:text-coral" />
+        </Link>
+        <Link href="/dashboard/qr" className="dash-qa group no-underline">
+          <div className="dash-qa-icon">
+            <Download className="h-[18px] w-[18px] text-coral" strokeWidth={2} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[13px] font-bold text-ink">Descarcă QR</div>
+            <div className="text-[11px] text-ink-muted">PDF A5 gata de printat</div>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-15 group-hover:text-coral" />
+        </Link>
+        <Link href="/dashboard/card" className="dash-qa group no-underline">
+          <div className="dash-qa-icon">
+            <Plus className="h-[18px] w-[18px] text-coral" strokeWidth={2} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[13px] font-bold text-ink">Card nou</div>
+            <div className="text-[11px] text-ink-muted">Creează program loyalty</div>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-15 group-hover:text-coral" />
         </Link>
       </div>
 
-      <div className="dash-stats-row">
-        <div className="dash-stat">
-          <div className="dash-stat-label">
-            Clienți înrolați <Users className="inline-block w-4 h-4" />
-          </div>
-          <div className="dash-stat-num">{customersCount ?? 0}</div>
-        </div>
-        <div className="dash-stat">
-          <div className="dash-stat-label">
-            Carduri active <CreditCard className="inline-block w-4 h-4" />
-          </div>
-          <div className="dash-stat-num">{passesCount ?? 0}</div>
-        </div>
-        <div className="dash-stat">
-          <div className="dash-stat-label">Ștampile azi</div>
-          <div className="dash-stat-num">{stampsToday}</div>
-        </div>
-        <div className="dash-stat">
-          <div className="dash-stat-label">Recompense (30 zile)</div>
-          <div className="dash-stat-num">{redemptionsMonth}</div>
-        </div>
-      </div>
-
-      <div className="card card-sm mb-8">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>Vizite ultimele 30 zile</div>
-            <div style={{ fontSize: 12, color: "var(--c-muted)" }}>
-              Săptămână: {stampsWeek} · Lună: {stampsMonth}
+      {/* Chart + programs */}
+      <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="dash-box lg:col-span-2">
+          <div className="dash-box-head">
+            <div>
+              <div className="dash-box-title">Vizite ultimele 30 zile</div>
+              <div className="dash-box-sub">Ștampile acordate per zi</div>
+            </div>
+            <div className="flex items-end gap-1">
+              <span className="font-display text-[22px] font-semibold text-ink">{stampsToday}</span>
+              <span className="mb-0.5 text-[11px] text-ink-muted">azi</span>
             </div>
           </div>
-          <Link href="/dashboard/qr" className="btn btn-sm btn-outline">
-            <QrCode className="w-4 h-4" />
-            QR
-          </Link>
-        </div>
-        <div className="h-40 flex items-end gap-1 mt-4">
-          {chartDays.map((day) => (
-            <div key={day.key} className="flex-1 flex flex-col items-center justify-end">
-              <div
-                style={{
-                  height: `${(day.count / maxChartCount) * 100}%`,
-                  minHeight: day.count ? 4 : 1,
-                  width: "100%",
-                  borderRadius: 4,
-                  background: "var(--c-accent-lt)",
-                  border: "1px solid rgba(200,75,47,0.2)",
-                }}
-                title={`${day.label}: ${day.count} ștampile`}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="card card-sm mb-8">
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700 }}>Carduri configurate</div>
-            <div style={{ fontSize: 12, color: "var(--c-muted)", marginTop: 4 }}>
-              Alege cardul/recompensa din QR și scan.
-            </div>
-          </div>
-          <Link href="/dashboard/card" className="btn btn-sm btn-outline">
-            Configurează
-          </Link>
-        </div>
-
-        <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
-          {(programs ?? []).map((program, idx) => (
-            <div
-              key={program.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "120px 1fr 80px 120px",
-                gap: 12,
-                alignItems: "center",
-              }}
-            >
-              <div style={{ fontWeight: 700 }}>Card {idx + 1}</div>
-              <div style={{ color: "var(--c-ink-60)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {program.card_name ?? program.reward_description}
-              </div>
-              <div style={{ fontWeight: 700 }}>{program.stamps_required}</div>
-              <div style={{ textAlign: "right" }}>
-                <Link href={`/dashboard/card?program=${program.id}`} className="btn btn-sm btn-ghost">
-                  Editează
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="card card-sm">
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
-          <div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700 }}>Carduri existente</div>
-            <div style={{ fontSize: 12, color: "var(--c-muted)", marginTop: 4 }}>
-              Ultimele 50 de carduri actualizate
-            </div>
-          </div>
-          <Link href="/dashboard/scan" className="btn btn-sm btn-accent">
-            Scanează client
-          </Link>
-        </div>
-
-        {(passes ?? []).length === 0 ? (
-          <div style={{ color: "var(--c-muted)", padding: 12 }}>
-            Nu există încă carduri. Scanează QR-ul de înrolare la casă pentru primul client.
-          </div>
-        ) : (
-          <div className="customers-grid">
-            {(passes ?? []).map((p) => {
-              const fullName = p.customers?.[0]?.full_name ?? "Client";
-              const phone = p.customers?.[0]?.phone ?? "-";
-              const programRow = Array.isArray(p.program)
-                ? p.program?.[0] ?? null
-                : (p.program as unknown as { stamps_required: number; card_color: string; card_name: string } | null);
-              const stampsRequired = programRow?.stamps_required ?? 0;
-              const cardColor = programRow?.card_color ?? "var(--c-accent)";
-              return (
-                <div key={p.id} className="customer-card" style={{ borderColor: p.reward_available ? "rgba(224,150,0,0.35)" : "var(--c-border)" }}>
-                  <div className="customer-card-header">
-                    <div className="avatar avatar-lg">
-                      {fullName.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="customer-card-info" style={{ flex: 1 }}>
-                      <div className="customer-name">{fullName}</div>
-                      <div className="customer-order">Tel: {phone}</div>
-                    </div>
-                    {p.reward_available ? (
-                      <span className="badge badge-amber badge-dot">{p.stamp_count}/{stampsRequired}</span>
-                    ) : (
-                      <span className="badge badge-default badge-dot">{p.stamp_count}/{stampsRequired}</span>
-                    )}
-                  </div>
-                  <div
-                    className="customer-stamps"
-                    style={{
-                      gridTemplateColumns: "repeat(5, 1fr)",
-                    }}
-                  >
-                    {Array.from({ length: stampsRequired }).map((_, idx) => {
-                      const filled = idx < p.stamp_count;
-                      return (
-                        <div
-                          key={idx}
-                          className="cs-dot"
-                          style={
-                            filled
-                              ? {
-                                  background: cardColor,
-                                  borderColor: cardColor,
-                                  color: "white",
-                                }
-                              : {
-                                  background: "transparent",
-                                }
-                          }
-                        >
-                          {filled ? "☕" : ""}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="customer-card-footer">
-                    <span className="visit-count">
-                      Ultima:{" "}
-                      {new Date(lastVisitByPassId.get(p.id) ?? p.updated_at).toLocaleDateString("ro-RO")}
+          <div className="px-[18px] pb-4 pt-4">
+            <div className="flex h-20 items-end gap-1">
+              {chartDays.map((day) => {
+                const h = maxChartCount > 0 ? Math.max((day.count / maxChartCount) * 72, day.count > 0 ? 8 : 4) : 4;
+                return (
+                  <div key={day.key} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+                    <div
+                      className={`w-full rounded-t-[3px] ${
+                        day.count > 0
+                          ? day.isToday
+                            ? "bg-coral"
+                            : "bg-coral/70"
+                          : "bg-ink-6"
+                      }`}
+                      style={{ height: `${h}px`, minHeight: day.count ? 4 : 2 }}
+                      title={`${day.key}: ${day.count}`}
+                    />
+                    <span className="text-[9px] text-ink-muted">
+                      {day.isToday ? "Azi" : ""}
                     </span>
-                    <Link href={`/card/${p.id}`} className="btn btn-sm btn-outline">
-                      Vezi
-                    </Link>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-4 border-t border-ink-6 pt-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+                <span className="h-2 w-2 rounded-full bg-coral" />
+                Ștampile acordate
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+                <span className="h-2 w-2 rounded-full bg-ink-15" />
+                Zile fără activitate
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+
+        <div className="dash-box flex min-h-0 flex-col">
+          <div className="dash-box-head">
+            <div>
+              <div className="dash-box-title">Carduri active</div>
+              <div className="dash-box-sub">
+                {(programs ?? []).length} program{(programs ?? []).length === 1 ? "" : "e"} configurate
+              </div>
+            </div>
+            <Link
+              href="/dashboard/card"
+              className="rounded-lg border border-ink-15 bg-paper px-2.5 py-1.5 text-[11px] font-semibold text-ink no-underline hover:bg-ink-6"
+            >
+              Vezi toate
+            </Link>
+          </div>
+          <div className="min-h-0 flex-1">
+            {(programs ?? []).length === 0 ? (
+              <div className="dash-empty-inner">
+                <p className="text-center text-[13px] text-ink-muted">Niciun program încă.</p>
+              </div>
+            ) : (
+              (programs ?? []).slice(0, 5).map((program, idx) => {
+                const cnt = countByProgram.get(program.id) ?? 0;
+                const bg = THUMB_BG[idx % THUMB_BG.length];
+                return (
+                  <Link
+                    key={program.id}
+                    href={`/dashboard/card?program=${program.id}`}
+                    className="dash-card-row last:border-b-0"
+                  >
+                    <div
+                      className="flex h-7 w-11 shrink-0 items-center justify-center rounded-[5px]"
+                      style={{ background: bg }}
+                    >
+                      <Star className="h-3 w-3 text-white/80" strokeWidth={2} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-bold text-ink">
+                        {program.card_name ?? program.reward_description ?? "Card"}
+                      </div>
+                      <div className="text-[11px] text-ink-muted">
+                        {program.stamps_required} ștampile · {cnt} clienți
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-display text-lg font-semibold text-ink">{cnt}</div>
+                      <div className="text-[10px] text-ink-muted">clienți</div>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent clients */}
+      <div className="dash-box overflow-hidden">
+        <div className="dash-box-head">
+          <div>
+            <div className="dash-box-title">Clienți recenți</div>
+            <div className="dash-box-sub">Ultimele activități</div>
+          </div>
+          <span className="rounded-lg border border-ink-15 px-2.5 py-1.5 text-[11px] font-semibold text-ink-muted">
+            Ultimele 5
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          {(recentRows ?? []).length === 0 ? (
+            <div className="dash-empty">
+              <div className="dash-empty-icon">
+                <Users className="h-5 w-5 text-coral" strokeWidth={2} />
+              </div>
+              <div className="text-[14px] font-bold text-ink">Niciun client încă</div>
+              <p className="max-w-[240px] text-center text-[12px] text-ink-muted">
+                Printează QR-ul și pune-l la casă. Primii clienți se înrolează în câteva secunde.
+              </p>
+              <Link
+                href="/dashboard/qr"
+                className="mt-2 inline-flex items-center justify-center rounded-lg bg-coral px-4 py-2 text-[13px] font-semibold text-paper no-underline hover:bg-coral-dark"
+              >
+                Descarcă QR
+              </Link>
+            </div>
+          ) : (
+            <table className="dash-table w-full min-w-[640px] border-collapse">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Card</th>
+                  <th>Progres</th>
+                  <th>Ultima vizită</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(recentRows ?? []).map((row, idx) => {
+                  const rawCust = row.customers as
+                    | { full_name: string; phone: string }
+                    | { full_name: string; phone: string }[]
+                    | null;
+                  const cust = Array.isArray(rawCust) ? rawCust[0] : rawCust;
+                  const rawProg = row.loyalty_programs as
+                    | { card_name: string | null; stamps_required: number }
+                    | { card_name: string | null; stamps_required: number }[]
+                    | null;
+                  const prog = Array.isArray(rawProg) ? rawProg[0] : rawProg;
+                  const name = cust?.full_name ?? "—";
+                  const phone = cust?.phone ?? "";
+                  const req = prog?.stamps_required ?? 10;
+                  const stamps = row.stamp_count ?? 0;
+                  const filled = Math.min(stamps, Math.min(req, 10));
+                  const status = rowStatus(
+                    row.reward_available,
+                    stamps,
+                    req,
+                    row.updated_at
+                  );
+                  const visit = new Intl.DateTimeFormat("ro-RO", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }).format(new Date(row.updated_at));
+                  const av = avClasses[idx % avClasses.length];
+                  return (
+                    <tr key={row.id}>
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <div className={`dash-av ${av}`}>{initials(name)}</div>
+                          <div>
+                            <div className="font-semibold text-ink">{name}</div>
+                            <div className="text-[11px] text-ink-muted">{maskPhone(phone)}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-[12px] text-ink-muted">
+                        {prog?.card_name ?? "—"}
+                      </td>
+                      <td>
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: Math.min(req, 10) }).map((_, i) => (
+                            <span
+                              key={i}
+                              className={`h-2 w-2 rounded-full ${
+                                i < filled ? "bg-coral" : "bg-ink-15"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="mt-0.5 text-[10px] text-ink-muted">
+                          {stamps} / {req}
+                        </div>
+                      </td>
+                      <td className="text-[12px] text-ink-muted">{visit}</td>
+                      <td>
+                        <span className={status.cls}>{status.label}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

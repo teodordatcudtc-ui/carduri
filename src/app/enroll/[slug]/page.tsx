@@ -24,7 +24,7 @@ export default async function EnrollPage({
   const query = supabase
     .from("loyalty_programs")
     .select(
-      "id, card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color"
+      "id, card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color, card_custom_bg3_color, card_layout, card_noise, card_mesh_gradient, card_footer_color, card_badge_color, card_badge_letter, card_stamp_variant, card_stamp_empty_icon, card_stamp_filled_icon"
     )
     .eq("merchant_id", merchant.id);
 
@@ -84,6 +84,16 @@ export default async function EnrollPage({
           stampStyle={program.card_stamp_style}
           customBgColor={program.card_custom_bg_color}
           customBg2Color={program.card_custom_bg2_color}
+          customBg3Color={program.card_custom_bg3_color}
+          layout={program.card_layout}
+          noise={program.card_noise}
+          meshGradient={program.card_mesh_gradient}
+          footerColor={program.card_footer_color}
+          badgeColor={program.card_badge_color}
+          badgeLetter={program.card_badge_letter}
+          stampVariant={program.card_stamp_variant}
+          emptyStampIcon={program.card_stamp_empty_icon}
+          filledStampIcon={program.card_stamp_filled_icon}
         />
       </div>
     </div>

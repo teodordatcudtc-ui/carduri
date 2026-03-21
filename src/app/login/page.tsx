@@ -67,8 +67,12 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <Link href="/" className="nav-logo" style={{ justifyContent: "center" }}>
-            <div className="nav-logo-dot" />
-            StampIO
+            <span className="logo-mark" style={{ width: 40, height: 40 }} aria-hidden>
+              <span className="logo-stamp" />
+            </span>
+            <span>
+              Stamp<span className="nav-logo-io">IO</span>
+            </span>
           </Link>
           <p className="mt-2 text-[var(--c-muted)] text-sm">Autentificare comerciant</p>
         </div>
@@ -78,9 +82,9 @@ export default function LoginPage() {
             <div
               className="rounded-lg text-sm p-3"
               style={{
-                background: "rgba(200,75,47,0.08)",
-                color: "var(--c-accent)",
-                border: "1px solid rgba(200,75,47,0.25)",
+                background: "rgba(242,101,69,0.08)",
+                color: "var(--c-accent-dark)",
+                border: "1px solid rgba(242,101,69,0.25)",
               }}
             >
               {error}

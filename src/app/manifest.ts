@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Carduri de fidelitate digitale cu ștampile, direct pe telefon.",
     start_url: "/",
     display: "standalone",
-    background_color: "#020617",
-    theme_color: "#ea751a",
+    background_color: "#f8f7f5",
+    theme_color: "#f26545",
     lang: "ro",
     icons: [
       {

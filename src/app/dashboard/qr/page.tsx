@@ -33,19 +33,12 @@ export default async function QrPage() {
   const enrollBaseUrl = `${baseUrl}/enroll/${merchant.slug}`;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="card card-sm">
-        <h1 className="text-2xl font-bold mb-2">QR înrolare</h1>
-        <p className="text-[var(--c-ink-60)] mb-6">
-        Afișează acest QR la casă sau trimite linkul. Clienții scanează, completează
-        datele și adaugă cardul în Wallet.
-        </p>
+    <div className="dash-qr-wrap w-full">
       <QrEnrollBlock
         enrollBaseUrl={enrollBaseUrl}
         businessName={merchant.business_name}
         programs={programs ?? []}
       />
-      </div>
     </div>
   );
 }

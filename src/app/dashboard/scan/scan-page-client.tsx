@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { ScanLine, Gift, Loader2, Camera } from "lucide-react";
+import { ScanLine, Gift, Loader2, Camera, Star } from "lucide-react";
 
 const CameraScanner = dynamic(
   () => import("./camera-scanner").then((m) => ({ default: m.CameraScanner })),
@@ -16,7 +16,34 @@ type Program = {
   reward_description: string;
 };
 
-export function ScanPageClient({ programs }: { programs: Program[] }) {
+export type ScanRecentRow = {
+  id: string;
+  at: string;
+  customerName: string;
+  cardName: string;
+  action: "stamp" | "reward";
+};
+
+function formatActivityTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
+}
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export function ScanPageClient({
+  programs,
+  recentActivity = [],
+}: {
+  programs: Program[];
+  recentActivity?: ScanRecentRow[];
+}) {
   const [barcode, setBarcode] = useState("");
   const [lastBarcode, setLastBarcode] = useState<string | null>(null);
   const [selectedProgramId, setSelectedProgramId] = useState(programs[0]?.id ?? "");
@@ -148,17 +175,15 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
   );
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="dash-scan-wrap w-full">
       <CameraScanner
         open={cameraOpen}
         onClose={() => setCameraOpen(false)}
         onScan={handleScanFromCamera}
       />
-      <div className="card card-sm">
-        <h1 className="text-2xl font-bold mb-2">Scanează card</h1>
-        <p className="text-[var(--c-ink-60)] mb-6">
-          Alege cardul/recompensa, apoi scanează clientul și acordă ștampila.
-        </p>
+      <p className="dash-page-lead mb-6">
+        Alege programul, apoi scanează QR-ul clientului sau introdu codul manual.
+      </p>
 
         {rewardPopup && (
           <div
@@ -218,41 +243,29 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
         )}
 
         {rewardBanner && (
-          <div
-            className="mb-4 rounded-lg p-4"
-            style={{
-              background:
-                rewardBanner.mode === "reached"
-                  ? "rgba(200,75,47,0.10)"
-                  : "rgba(224,150,0,0.10)",
-              border:
-                rewardBanner.mode === "reached"
-                  ? "1px solid rgba(200,75,47,0.25)"
-                  : "1px solid rgba(224,150,0,0.25)",
-              color: rewardBanner.mode === "reached" ? "var(--c-accent)" : "var(--c-amber)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 20,
-                fontWeight: 800,
-                lineHeight: 1.2,
-                marginBottom: 6,
-              }}
-            >
-              {rewardBanner.mode === "reached"
-                ? "Recompensă câștigată!"
-                : "Recompensă disponibilă"}
+          <div className="dash-reward-banner mb-4">
+            <div className="min-w-0 flex-1">
+              <div
+                className="text-[13px] font-bold"
+                style={{
+                  color:
+                    rewardBanner.mode === "reached" ? "var(--c-accent-dark)" : "var(--c-amber)",
+                }}
+              >
+                {rewardBanner.mode === "reached"
+                  ? "Recompensă câștigată!"
+                  : "Recompensă disponibilă"}
+              </div>
+              <div className="text-[12px] opacity-90" style={{ color: "var(--c-ink-60)" }}>
+                Clientul are {rewardBanner.stamp_count}/{rewardBanner.stamps_required} ștampile.
+              </div>
             </div>
-            <div style={{ fontSize: 14, opacity: 0.95 }}>
-              Clientul are {rewardBanner.stamp_count}/{rewardBanner.stamps_required} ștampile.
-            </div>
-            <div className="mt-3 flex gap-2">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <button
                 type="button"
                 onClick={() => doAction("redeem")}
                 disabled={loading !== null}
-                className="btn btn-md btn-accent btn-full"
+                className="btn btn-sm btn-accent shrink-0"
               >
                 Acordă recompensa
               </button>
@@ -260,105 +273,164 @@ export function ScanPageClient({ programs }: { programs: Program[] }) {
                 type="button"
                 onClick={() => setRewardBanner(null)}
                 disabled={loading !== null}
-                className="btn btn-md btn-outline btn-full"
+                className="btn btn-sm btn-outline shrink-0"
               >
                 Acordă mai târziu
               </button>
             </div>
-            <div className="mt-2 text-xs" style={{ opacity: 0.9 }}>
-              Dacă alegi „Acordă recompensa”, ștampilele se resetează imediat (card nou). Dacă alegi „Acordă mai târziu”, ștampilele NU se resetează până revendici recompensa.
-            </div>
+            <p className="w-full text-[11px] opacity-90" style={{ color: "var(--c-muted)" }}>
+              Dacă acorzi recompensa acum, ștampilele se resetează. „Mai târziu” păstrează progresul.
+            </p>
           </div>
         )}
 
-        <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Card / recompensă
-          </label>
-          <select
-            value={selectedProgramId}
-            onChange={(e) => setSelectedProgramId(e.target.value)}
-            className="w-full field-input"
-          >
-            {programs.map((program) => (
-              <option key={program.id} value={program.id}>
-                {program.card_name ?? "Card"} — {program.stamps_required} ștampile
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          type="button"
-          onClick={() => setCameraOpen(true)}
-          className="btn btn-md btn-accent btn-full"
-        >
-          <Camera className="w-5 h-5" />
-          Deschide camera pentru scanare
-        </button>
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Sau introdu codul manual
-          </label>
-          <input
-            ref={inputRef}
-            type="text"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") doAction("stamp");
-            }}
-            placeholder="Ex: SP-abc123..."
-            className="w-full field-input font-mono text-base"
-            autoFocus
-          />
-        </div>
-        {result && (
-          <div
-            className="rounded-lg p-3 text-sm"
-            style={{
-              background: result.ok ? "rgba(77,124,106,0.12)" : "rgba(200,75,47,0.12)",
-              color: result.ok ? "var(--c-sage)" : "var(--c-accent)",
-              border: `1px solid ${
-                result.ok ? "rgba(77,124,106,0.25)" : "rgba(200,75,47,0.25)"
-              }`,
-            }}
-          >
-            {result.message}
+      <div className="dash-box mb-4">
+        <div className="dash-box-head">
+          <div>
+            <div className="dash-box-title">Scanează client</div>
+            <div className="dash-box-sub">Alege programul, apoi scanează QR-ul clientului</div>
           </div>
-        )}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => doAction("stamp")}
-            disabled={loading !== null}
-            className="btn btn-md btn-outline btn-full"
-          >
-            {loading === "stamp" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <ScanLine className="w-5 h-5" />
-            )}
-            Adaugă ștampilă
+        </div>
+        <div className="dash-box-body space-y-4">
+          <div>
+            <label className="field-label mb-1.5 block">Card / Recompensă</label>
+            <select
+              value={selectedProgramId}
+              onChange={(e) => setSelectedProgramId(e.target.value)}
+              className="field-input w-full"
+            >
+              {programs.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.card_name ?? "Card"} — {program.stamps_required} ștampile
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button type="button" onClick={() => setCameraOpen(true)} className="dash-scan-big-btn">
+            <Camera className="h-5 w-5 shrink-0" aria-hidden />
+            Deschide camera pentru scanare
           </button>
-          {!rewardBanner && (
+
+          <div className="dash-scan-divider">sau introdu codul manual</div>
+
+          <div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") doAction("stamp");
+              }}
+              placeholder="Ex: SP-abc123..."
+              className="field-input w-full font-mono tracking-wide"
+              autoFocus
+            />
+          </div>
+
+          {result && (
+            <div
+              className={
+                result.ok
+                  ? "dash-success-banner"
+                  : "rounded-[10px] border border-[rgba(200,75,47,0.25)] bg-[rgba(200,75,47,0.08)] px-4 py-3 text-[13px] font-medium text-[var(--c-accent)]"
+              }
+            >
+              {result.ok ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#1A7A45"
+                  strokeWidth="2.5"
+                  aria-hidden
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : null}
+              <div className="min-w-0">{result.message}</div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
-              onClick={() => doAction("redeem")}
+              onClick={() => doAction("stamp")}
               disabled={loading !== null}
-              className="btn btn-md btn-accent btn-full"
+              className="btn btn-lg btn-outline btn-full"
             >
-              {loading === "redeem" ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+              {loading === "stamp" ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Gift className="w-5 h-5" />
+                <Star className="h-4 w-4" />
               )}
-              Acordă recompensa
+              Adaugă ștampilă
             </button>
-          )}
-        </div>
+            {!rewardBanner && (
+              <button
+                type="button"
+                onClick={() => doAction("redeem")}
+                disabled={loading !== null}
+                className="btn btn-lg btn-accent btn-full"
+              >
+                {loading === "redeem" ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Gift className="h-4 w-4" />
+                )}
+                Acordă recompensă
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {recentActivity.length > 0 ? (
+        <div className="dash-box">
+          <div className="dash-box-head">
+            <div className="dash-box-title">Activitate recentă azi</div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="dash-table w-full min-w-[480px] border-collapse">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Card</th>
+                  <th>Acțiune</th>
+                  <th>Oră</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentActivity.map((row, i) => (
+                  <tr key={row.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div className={`dash-av ${["av-c", "av-b", "av-y", "av-n", "av-g"][i % 5]}`}>
+                          {initials(row.customerName)}
+                        </div>
+                        <span>{row.customerName}</span>
+                      </div>
+                    </td>
+                    <td className="text-[12px] text-[var(--c-muted)]">{row.cardName}</td>
+                    <td>
+                      <span
+                        className={
+                          row.action === "reward" ? "dash-badge dash-badge-green" : "dash-badge dash-badge-neutral"
+                        }
+                      >
+                        {row.action === "reward" ? "Recompensă" : "Ștampilă"}
+                      </span>
+                    </td>
+                    <td className="text-[12px] text-[var(--c-muted)]">{formatActivityTime(row.at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

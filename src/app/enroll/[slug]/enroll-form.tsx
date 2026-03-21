@@ -19,6 +19,16 @@ type Props = {
   stampStyle?: string | null;
   customBgColor?: string | null;
   customBg2Color?: string | null;
+  customBg3Color?: string | null;
+  layout?: string | null;
+  noise?: boolean | null;
+  meshGradient?: boolean | null;
+  footerColor?: string | null;
+  badgeColor?: string | null;
+  badgeLetter?: string | null;
+  stampVariant?: string | null;
+  emptyStampIcon?: string | null;
+  filledStampIcon?: string | null;
 };
 
 export function EnrollForm({
@@ -35,6 +45,16 @@ export function EnrollForm({
   stampStyle,
   customBgColor,
   customBg2Color,
+  customBg3Color,
+  layout,
+  noise,
+  meshGradient,
+  footerColor,
+  badgeColor,
+  badgeLetter,
+  stampVariant,
+  emptyStampIcon,
+  filledStampIcon,
 }: Props & { programId: string }) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -226,6 +246,16 @@ export function EnrollForm({
             stampStyle={cardStampStyle}
             customBgColor={customBgColor ?? cardColor}
             customBg2Color={customBg2Color ?? (customBgColor ?? cardColor)}
+            customBg3Color={customBg3Color ?? customBg2Color ?? (customBgColor ?? cardColor)}
+            layout={(layout === "hero" ? "hero" : "compact") as "compact" | "hero"}
+            noise={!!noise}
+            meshGradient={!!meshGradient}
+            footerColor={footerColor}
+            badgeColor={badgeColor}
+            badgeLetter={badgeLetter}
+            stampVariant={(stampVariant === "contrast" ? "contrast" : "brand") as "brand" | "contrast"}
+            emptyStampIcon={emptyStampIcon ?? "coffee"}
+            filledStampIcon={filledStampIcon ?? "check"}
           />
         </div>
       </div>
