@@ -25,12 +25,8 @@ export function CardShowcase({ programs, merchant, passCountByProgram }: Props) 
           return (
             <div key={id} className="group flex min-w-0 flex-col gap-3">
               <div className="relative w-full">
-                <div className="absolute right-2 top-2 z-10">
-                  <DeleteProgramButton
-                    programId={id}
-                    programTitle={title}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--c-border)] bg-[var(--c-white)]/95 p-0 text-[var(--c-muted)] shadow-sm backdrop-blur-sm hover:border-[var(--c-accent)] hover:text-[var(--c-accent)]"
-                  />
+                <div className="absolute right-1.5 top-1.5 z-10 max-w-[calc(100%-12px)]">
+                  <DeleteProgramButton programId={id} programTitle={title} />
                 </div>
                 <Link
                   href={`/dashboard/card?program=${id}`}

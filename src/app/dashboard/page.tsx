@@ -11,8 +11,19 @@ import {
   Users,
 } from "lucide-react";
 import { DashboardOnboardingBanner } from "./dashboard-banner";
+import { DashboardProgramThumb } from "./dashboard-program-thumb";
+import { programRowToLoyaltyPreview } from "@/lib/card-program-preview";
 
-const THUMB_BG = ["#1E1B18", "#F26545", "#3B82C4", "#27AE60", "#7C3AED"];
+/** Zi calendaristică în Europe/Bucharest (YYYY-MM-DD) — aliniere corectă cu ștampile locale. */
+function bucharestDayKey(isoOrDate: string | Date): string {
+  const d = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Bucharest",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
 
 function maskPhone(phone: string) {
   const d = phone.replace(/\D/g, "");
@@ -59,15 +70,13 @@ export default async function DashboardPage() {
 
   const { data: merchant } = await supabase
     .from("merchants")
-    .select("id, business_name, slug")
+    .select("id, business_name, slug, logo_url")
     .eq("user_id", user.id)
     .single();
 
   if (!merchant) redirect("/dashboard/onboarding");
 
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString();
   const startOfMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const [
@@ -86,7 +95,7 @@ export default async function DashboardPage() {
 
   const { data: programs } = await supabase
     .from("loyalty_programs")
-    .select("id, card_name, stamps_required, reward_description")
+    .select("*")
     .eq("merchant_id", merchant.id)
     .order("created_at", { ascending: true });
 
@@ -118,9 +127,14 @@ export default async function DashboardPage() {
     .order("updated_at", { ascending: false })
     .limit(5);
 
-  const stampsToday = (stampEvents ?? []).filter((e) => e.created_at >= startOfToday).length;
+  const todayKey = bucharestDayKey(now);
+  const yesterdayKey = bucharestDayKey(new Date(now.getTime() - 86400000));
+
+  const stampsToday = (stampEvents ?? []).filter(
+    (e) => bucharestDayKey(new Date(e.created_at)) === todayKey
+  ).length;
   const stampsYesterday = (stampEvents ?? []).filter(
-    (e) => e.created_at >= startOfYesterday && e.created_at < startOfToday
+    (e) => bucharestDayKey(new Date(e.created_at)) === yesterdayKey
   ).length;
   const stampsMonth = (stampEvents ?? []).length;
 
@@ -129,18 +143,20 @@ export default async function DashboardPage() {
     countByProgram.set(r.program_id, (countByProgram.get(r.program_id) ?? 0) + 1);
   }
 
-  const chartDays = Array.from({ length: 30 }).map((_, i) => {
-    const d = new Date(now.getTime() - (29 - i) * 24 * 60 * 60 * 1000);
-    const key = d.toISOString().slice(0, 10);
-    return { key, label: "", count: 0, isToday: i === 29 };
+  const chartDayCount = 14;
+  const chartDays = Array.from({ length: chartDayCount }).map((_, i) => {
+    const d = new Date(now.getTime() - (chartDayCount - 1 - i) * 24 * 60 * 60 * 1000);
+    const key = bucharestDayKey(d);
+    return { key, count: 0, isToday: key === todayKey };
   });
   const chartMap = new Map(chartDays.map((d) => [d.key, d]));
   (stampEvents ?? []).forEach((e) => {
-    const key = e.created_at.slice(0, 10);
+    const key = bucharestDayKey(new Date(e.created_at));
     const item = chartMap.get(key);
     if (item) item.count += 1;
   });
   const maxChartCount = Math.max(1, ...chartDays.map((d) => d.count));
+  const maxBarPx = 36;
 
   const cc = customersCount ?? 0;
   const pc = passesCount ?? 0;
@@ -265,34 +281,49 @@ export default async function DashboardPage() {
         <div className="dash-box lg:col-span-2">
           <div className="dash-box-head">
             <div>
-              <div className="dash-box-title">Vizite ultimele 30 zile</div>
-              <div className="dash-box-sub">Ștampile acordate per zi</div>
+              <div className="dash-box-title">Ștampile pe zi</div>
+              <div className="dash-box-sub">Ultimele 14 zile · ziua = fusul Europe/Bucharest</div>
             </div>
-            <div className="flex items-end gap-1">
-              <span className="font-display text-[22px] font-semibold text-ink">{stampsToday}</span>
-              <span className="mb-0.5 text-[11px] text-ink-muted">azi</span>
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="font-display text-[20px] font-semibold leading-none text-ink">{stampsToday}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-ink-muted">azi</span>
             </div>
           </div>
-          <div className="px-[18px] pb-4 pt-4">
-            <div className="flex h-20 items-end gap-1">
+          <div className="px-[18px] pb-4 pt-3">
+            <div className="flex min-h-[52px] items-end justify-center gap-0.5 sm:gap-1">
               {chartDays.map((day) => {
-                const h = maxChartCount > 0 ? Math.max((day.count / maxChartCount) * 72, day.count > 0 ? 8 : 4) : 4;
+                const h =
+                  day.count === 0
+                    ? 3
+                    : Math.max(
+                        6,
+                        Math.round(
+                          (Math.sqrt(day.count) / Math.sqrt(maxChartCount)) * maxBarPx
+                        )
+                      );
                 return (
-                  <div key={day.key} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+                  <div
+                    key={day.key}
+                    className="flex min-w-0 max-w-[40px] flex-1 flex-col items-center justify-end gap-1"
+                  >
                     <div
-                      className={`w-full rounded-t-[3px] ${
+                      className={`w-full rounded-t-[4px] transition-[height] ${
                         day.count > 0
                           ? day.isToday
                             ? "bg-coral"
-                            : "bg-coral/70"
+                            : "bg-coral/65"
                           : "bg-ink-6"
                       }`}
-                      style={{ height: `${h}px`, minHeight: day.count ? 4 : 2 }}
-                      title={`${day.key}: ${day.count}`}
+                      style={{ height: `${h}px` }}
+                      title={`${day.key}: ${day.count} ștampile`}
                     />
-                    <span className="text-[9px] text-ink-muted">
-                      {day.isToday ? "Azi" : ""}
-                    </span>
+                    <div className="flex h-3.5 w-full items-center justify-center">
+                      {day.isToday ? (
+                        <span className="text-[8px] font-semibold uppercase leading-none text-coral sm:text-[9px]">
+                          Azi
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}
@@ -304,7 +335,7 @@ export default async function DashboardPage() {
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
                 <span className="h-2 w-2 rounded-full bg-ink-15" />
-                Zile fără activitate
+                Fără activitate
               </div>
             </div>
           </div>
@@ -331,21 +362,19 @@ export default async function DashboardPage() {
                 <p className="text-center text-[13px] text-ink-muted">Niciun program încă.</p>
               </div>
             ) : (
-              (programs ?? []).slice(0, 5).map((program, idx) => {
+              (programs ?? []).slice(0, 5).map((program) => {
                 const cnt = countByProgram.get(program.id) ?? 0;
-                const bg = THUMB_BG[idx % THUMB_BG.length];
+                const p = program as Record<string, unknown>;
+                const thumbProps = programRowToLoyaltyPreview(p, {
+                  logo_url: merchant.logo_url ?? null,
+                });
                 return (
                   <Link
                     key={program.id}
                     href={`/dashboard/card?program=${program.id}`}
                     className="dash-card-row last:border-b-0"
                   >
-                    <div
-                      className="flex h-7 w-11 shrink-0 items-center justify-center rounded-[5px]"
-                      style={{ background: bg }}
-                    >
-                      <Star className="h-3 w-3 text-white/80" strokeWidth={2} />
-                    </div>
+                    <DashboardProgramThumb props={thumbProps} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[13px] font-bold text-ink">
                         {program.card_name ?? program.reward_description ?? "Card"}

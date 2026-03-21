@@ -499,6 +499,8 @@ export type LoyaltyCardDesignProps = {
   emptyStampIcon?: string | null;
   filledStampIcon?: string | null;
   showSubtitle?: boolean;
+  /** Lățime maximă în px (ex. preview editor); implicit 360. */
+  maxWidthPx?: number;
 };
 
 export default function LoyaltyCard({
@@ -527,6 +529,7 @@ export default function LoyaltyCard({
   emptyStampIcon = "coffee",
   filledStampIcon = "check",
   showSubtitle = true,
+  maxWidthPx = 360,
 }: LoyaltyCardDesignProps) {
   const paletteResolved = useMemo(() => {
     if (palette === "custom") {
@@ -727,7 +730,7 @@ export default function LoyaltyCard({
     <div
       style={{
         width: "100%",
-        maxWidth: 360,
+        maxWidth: maxWidthPx,
         aspectRatio: "340 / 210",
         borderRadius: 16,
         position: "relative",

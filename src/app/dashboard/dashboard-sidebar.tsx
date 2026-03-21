@@ -71,13 +71,6 @@ export function DashboardSidebar({ merchant }: { merchant: Merchant }) {
               <QrCode aria-hidden />
               QR Înrolare
             </Link>
-            <Link
-              href="/dashboard/settings"
-              className={navClass(active("/dashboard/settings"))}
-            >
-              <Settings aria-hidden />
-              Setări
-            </Link>
             <Link href="/dashboard/staff" className={navClass(active("/dashboard/staff"))}>
               <Users aria-hidden />
               Angajați
@@ -85,6 +78,13 @@ export function DashboardSidebar({ merchant }: { merchant: Merchant }) {
             <Link href="/dashboard/clients" className={navClass(active("/dashboard/clients"))}>
               <UserCircle2 aria-hidden />
               Clienți
+            </Link>
+            <Link
+              href="/dashboard/settings"
+              className={navClass(active("/dashboard/settings"))}
+            >
+              <Settings aria-hidden />
+              Setări
             </Link>
           </>
         )}

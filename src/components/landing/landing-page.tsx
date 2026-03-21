@@ -246,19 +246,24 @@ export function LandingPage({ user }: { user: User | null }) {
             QR la casă, card digital pe telefon, ștampilă în 3 secunde. Fără aplicație instalată, fără
             carduri de hârtie.
           </motion.p>
-          <motion.div variants={heroItem} className="mt-9 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex h-14 items-center justify-center rounded-[10px] bg-coral px-7 text-base font-semibold text-paper no-underline transition hover:bg-coral-dark"
-            >
-              Încearcă 30 zile gratuit
-            </Link>
-            <Link
-              href="/support"
-              className="inline-flex h-14 items-center justify-center rounded-[10px] border border-ink-15 bg-transparent px-7 text-base font-semibold text-ink-70 no-underline transition hover:bg-ink-6"
-            >
-              Solicită demo
-            </Link>
+          <motion.div
+            variants={heroItem}
+            className="mt-9 w-full max-w-lg sm:max-w-xl mx-auto px-0"
+          >
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
+              <Link
+                href="/login"
+                className="flex h-14 w-full min-h-[3.5rem] items-center justify-center rounded-[10px] bg-coral px-4 text-center text-base font-semibold leading-tight text-paper no-underline transition hover:bg-coral-dark sm:px-5"
+              >
+                Încearcă 30 zile gratuit
+              </Link>
+              <Link
+                href="/support"
+                className="flex h-14 w-full min-h-[3.5rem] items-center justify-center rounded-[10px] border border-ink-15 bg-transparent px-4 text-center text-base font-semibold leading-tight text-ink-70 no-underline transition hover:bg-ink-6 sm:px-5"
+              >
+                Solicită demo
+              </Link>
+            </div>
           </motion.div>
           <motion.p variants={heroItem} className="mt-5 text-sm text-ink-muted">
             Fără card de credit · Setup complet în 5 minute

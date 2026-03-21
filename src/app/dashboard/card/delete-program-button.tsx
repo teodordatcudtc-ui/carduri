@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import { StampioAlertDialog, StampioConfirmDialog } from "@/components/ui/stampio-modal";
 
 type Props = {
   programId: string;
@@ -13,22 +14,22 @@ type Props = {
 export function DeleteProgramButton({ programId, programTitle, className }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function onDelete(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    const ok = window.confirm(
-      `Ștergi cardul „${programTitle}”? Clienții înrolați la acest program își pierd progresul pe acest card.`
-    );
-    if (!ok) return;
+  async function runDelete() {
     setLoading(true);
     try {
       const res = await fetch(`/api/dashboard/program/${programId}`, { method: "DELETE" });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        window.alert(data.error === "delete_failed" ? "Nu s-a putut șterge cardul." : "Eroare la ștergere.");
+        setConfirmOpen(false);
+        setErrorMessage(
+          data.error === "delete_failed" ? "Nu s-a putut șterge cardul." : "Eroare la ștergere."
+        );
         return;
       }
+      setConfirmOpen(false);
       router.refresh();
       router.push("/dashboard/card");
     } finally {
@@ -37,18 +38,51 @@ export function DeleteProgramButton({ programId, programTitle, className }: Prop
   }
 
   return (
-    <button
-      type="button"
-      onClick={onDelete}
-      disabled={loading}
-      title="Șterge cardul"
-      className={
-        className ??
-        "inline-flex items-center justify-center rounded-lg border border-[var(--c-border)] bg-[var(--c-white)] p-2 text-[var(--c-muted)] hover:border-[var(--c-accent)] hover:text-[var(--c-accent)] hover:bg-[rgba(200,75,47,0.06)] transition-colors disabled:opacity-50"
-      }
-    >
-      <Trash2 className="w-4 h-4" aria-hidden />
-      <span className="sr-only">Șterge cardul</span>
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setConfirmOpen(true);
+        }}
+        disabled={loading}
+        title="Șterge acest card"
+        className={
+          className ??
+          "inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-[rgba(214,59,38,0.55)] bg-[#fff5f3] px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--c-danger)] shadow-sm transition-colors hover:bg-[#ffeae6] hover:border-[var(--c-danger)] disabled:opacity-50 sm:min-h-[36px]"
+        }
+      >
+        <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        <span>Șterge</span>
+      </button>
+
+      <StampioConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Ștergi acest card?"
+        description={
+          <>
+            Ștergi cardul <span className="font-semibold text-[var(--c-black)]">„{programTitle}”</span>?
+            Clienții înrolați la acest program își pierd progresul pe acest card.
+          </>
+        }
+        confirmLabel="Șterge cardul"
+        cancelLabel="Anulează"
+        variant="destructive"
+        loading={loading}
+        onConfirm={runDelete}
+      />
+
+      <StampioAlertDialog
+        open={errorMessage !== null}
+        onOpenChange={(open) => {
+          if (!open) setErrorMessage(null);
+        }}
+        title="Nu s-a putut șterge"
+        message={errorMessage ?? ""}
+        buttonLabel="Am înțeles"
+      />
+    </>
   );
 }

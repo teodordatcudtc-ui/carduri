@@ -147,8 +147,9 @@ export function CompanyForm({ merchantId, userEmail, initial }: Props) {
         </div>
       )}
 
+      <div className="mx-auto grid max-w-[1100px] gap-4 lg:grid-cols-2 lg:items-start lg:gap-5">
       <form id="settings-business" onSubmit={handleSubmit} className="contents">
-        <div className="dash-box mb-4">
+        <div className="dash-box mb-0 lg:mb-0">
           <div className="dash-box-head">
             <div>
               <div className="dash-box-title">Informații business</div>
@@ -234,9 +235,12 @@ export function CompanyForm({ merchantId, userEmail, initial }: Props) {
         </div>
       </form>
 
-      <div className="dash-box mb-4">
+      <div className="dash-box mb-0">
         <div className="dash-box-head">
-          <div className="dash-box-title">Cont și acces</div>
+          <div>
+            <div className="dash-box-title">Cont și acces</div>
+            <div className="dash-box-sub">Email și parolă</div>
+          </div>
         </div>
         <div className="dash-box-body space-y-4">
           <div className="field-group mb-0">
@@ -309,7 +313,9 @@ export function CompanyForm({ merchantId, userEmail, initial }: Props) {
           </form>
         </div>
       </div>
+      </div>
 
+      <div className="mx-auto mt-5 max-w-[1100px]">
       <div className="dash-box mb-6">
         <div className="dash-box-head">
           <div className="dash-box-title">Plan activ</div>
@@ -348,15 +354,18 @@ export function CompanyForm({ merchantId, userEmail, initial }: Props) {
           </div>
         </div>
       </div>
+      </div>
 
-      <button
-        type="submit"
-        form="settings-business"
-        disabled={loading}
-        className="btn btn-lg btn-accent btn-full"
-      >
-        {loading ? "Se salvează…" : "Salvează modificările"}
-      </button>
+      <div className="mx-auto mt-2 flex max-w-[1100px] justify-center px-1">
+        <button
+          type="submit"
+          form="settings-business"
+          disabled={loading}
+          className="btn btn-lg btn-accent w-full max-w-md"
+        >
+          {loading ? "Se salvează…" : "Salvează modificările"}
+        </button>
+      </div>
     </div>
   );
 }

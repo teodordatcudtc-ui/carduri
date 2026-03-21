@@ -152,11 +152,12 @@ export function CardForm({ merchant, programId, initial }: Props) {
       emptyStampIcon={form.card_stamp_empty_icon ?? "coffee"}
       filledStampIcon={form.card_stamp_filled_icon ?? "check"}
       showSubtitle
+      maxWidthPx={428}
     />
   );
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-8 xl:gap-10 items-start w-full xl:min-h-0 xl:h-full xl:grid-rows-1 xl:items-stretch">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_min(460px,42vw)] gap-8 xl:gap-10 items-start w-full xl:min-h-0 xl:h-full xl:grid-rows-1 xl:items-stretch">
       <div className="space-y-6 min-w-0 xl:min-h-0 xl:max-h-full xl:overflow-y-auto xl:overscroll-contain xl:pr-1 xl:pb-2 xl:scroll-smooth">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
@@ -604,10 +605,8 @@ export function CardForm({ merchant, programId, initial }: Props) {
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--c-muted)] shrink-0">
           Preview card client
         </p>
-        <div className="dash-box overflow-hidden shrink-0">
-          <div className="dash-box-body flex justify-center bg-[var(--c-sand)]/50 p-6">
-            <div className="w-full max-w-[360px]">{preview}</div>
-          </div>
+        <div className="flex w-full justify-center overflow-visible py-1">
+          <div className="w-full max-w-[428px]">{preview}</div>
         </div>
         <p className="text-xs text-[var(--c-muted)] leading-relaxed shrink-0">
           Preview-ul folosește date fictive pentru titular. Pe cardul real apare numele clientului și progresul
