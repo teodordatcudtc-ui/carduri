@@ -12,6 +12,36 @@ function hex(c: string | null | undefined, fallback: string): string {
   return fallback;
 }
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace(/^#/, "");
+  const full = h.length === 3 ? `${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}` : h.slice(0, 6);
+  if (full.length !== 6) return { r: 30, g: 27, b: 24 };
+  return {
+    r: parseInt(full.slice(0, 2), 16),
+    g: parseInt(full.slice(2, 4), 16),
+    b: parseInt(full.slice(4, 6), 16),
+  };
+}
+
+/** Text deschis pe fundal închis, invers pe fundal deschis (ca pe cardul web). */
+function textOnBackground(bgHex: string): { primary: string; muted: string; subtle: string } {
+  const { r, g, b } = hexToRgb(bgHex);
+  const L = 0.2126 * (r / 255) + 0.7152 * (g / 255) + 0.0722 * (b / 255);
+  const dark = L > 0.62;
+  if (dark) {
+    return {
+      primary: "#141210",
+      muted: "rgba(20,18,16,0.72)",
+      subtle: "rgba(20,18,16,0.48)",
+    };
+  }
+  return {
+    primary: "#ffffff",
+    muted: "rgba(255,255,255,0.82)",
+    subtle: "rgba(255,255,255,0.55)",
+  };
+}
+
 function placeholderImage(message: string) {
   return new ImageResponse(
     (
@@ -65,7 +95,7 @@ export async function GET(request: Request) {
     supabase
       .from("loyalty_programs")
       .select(
-        "stamps_required, reward_description, card_name, card_custom_bg_color, card_custom_bg2_color, card_color"
+        "stamps_required, reward_description, card_name, card_custom_bg_color, card_custom_bg2_color, card_custom_bg3_color, card_color"
       )
       .eq("id", pass.program_id)
       .single(),
@@ -83,12 +113,22 @@ export async function GET(request: Request) {
     hex(program?.card_color, merchant?.brand_color ?? "#ea751a")
   );
   const c2 = hex(program?.card_custom_bg2_color, c1);
+  const c3 = hex(program?.card_custom_bg3_color, c2);
+
+  const txt = textOnBackground(c1);
+  const isLight = txt.primary === "#141210";
+  const panelBg = isLight ? "rgba(255,255,255,0.82)" : "rgba(0,0,0,0.18)";
+  const panelBorder = isLight ? "1px solid rgba(20,18,16,0.08)" : "1px solid rgba(255,255,255,0.14)";
+  const stampEmptyBorder = isLight ? "3px solid rgba(20,18,16,0.2)" : "3px solid rgba(255,255,255,0.35)";
+  const stampEmptyInner = isLight ? "rgba(20,18,16,0.06)" : "rgba(0,0,0,0.15)";
 
   const n = stampsRequired;
-  const circleSize = n <= 6 ? 52 : n <= 10 ? 42 : n <= 14 ? 34 : 28;
-  const gap = n <= 10 ? 12 : 8;
+  const circleSize = n <= 6 ? 54 : n <= 10 ? 44 : n <= 14 ? 36 : 30;
+  const gap = n <= 10 ? 14 : 9;
 
   const slots = Array.from({ length: n }, (_, i) => i < stampCount);
+  const remaining = Math.max(0, stampsRequired - stampCount);
+  const accentStripe = hex(program?.card_color, merchant?.brand_color ?? "#f26545");
 
   return new ImageResponse(
     (
@@ -98,108 +138,222 @@ export async function GET(request: Request) {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
-          background: `linear-gradient(145deg, ${c1} 0%, ${c2} 100%)`,
-          padding: "20px 28px 22px",
+          background: `linear-gradient(155deg, ${c1} 0%, ${c2} 48%, ${c3} 100%)`,
+          position: "relative",
         }}
       >
+        {/* Accente subtile + bandă coral */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(ellipse 90% 70% at 20% 10%, rgba(255,255,255,0.14) 0%, transparent 55%)",
           }}
-        >
-          <span
-            style={{
-              color: "rgba(255,255,255,0.96)",
-              fontSize: 26,
-              fontWeight: 700,
-              letterSpacing: -0.5,
-            }}
-          >
-            {cardTitle}
-          </span>
-          {pass.reward_available ? (
-            <span
-              style={{
-                background: "rgba(255,255,255,0.22)",
-                color: "white",
-                fontSize: 16,
-                fontWeight: 700,
-                padding: "6px 14px",
-                borderRadius: 999,
-              }}
-            >
-              Recompensă gata
-            </span>
-          ) : null}
-        </div>
+        />
+        <div
+          style={{
+            height: 5,
+            width: "100%",
+            background: `linear-gradient(90deg, ${accentStripe} 0%, ${c2} 100%)`,
+          }}
+        />
 
         <div
           style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap,
-            justifyContent: "center",
-            alignItems: "center",
-            alignContent: "center",
             flex: 1,
-          }}
-        >
-          {slots.map((filled, i) => (
-            <div
-              key={i}
-              style={{
-                width: circleSize,
-                height: circleSize,
-                borderRadius: circleSize / 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                ...(filled
-                  ? {
-                      background: "rgba(255,255,255,0.95)",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                    }
-                  : {
-                      border: "3px solid rgba(255,255,255,0.42)",
-                      background: "rgba(0,0,0,0.12)",
-                    }),
-              }}
-            >
-              {filled ? (
-                <span style={{ color: c1, fontSize: circleSize * 0.45, fontWeight: 800 }}>✓</span>
-              ) : null}
-            </div>
-          ))}
-        </div>
-
-        <div
-          style={{
             display: "flex",
             flexDirection: "column",
-            gap: 6,
-            alignItems: "center",
+            padding: "22px 32px 26px",
+            justifyContent: "space-between",
+            position: "relative",
           }}
         >
-          <span style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 600 }}>
-            {stampCount} / {stampsRequired} ștampile
-          </span>
-          <span
+          <div
             style={{
-              color: "rgba(255,255,255,0.94)",
-              fontSize: 20,
-              fontWeight: 600,
-              textAlign: "center",
-              lineHeight: 1.25,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 20,
             }}
           >
-            {rewardDescription}
-          </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: "72%" }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase" as const,
+                  color: txt.subtle,
+                  fontFamily:
+                    'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+                }}
+              >
+                {businessName}
+              </span>
+              <span
+                style={{
+                  fontSize: 30,
+                  fontWeight: 700,
+                  letterSpacing: -0.8,
+                  lineHeight: 1.15,
+                  color: txt.primary,
+                  fontFamily: 'Georgia, "Times New Roman", ui-serif, serif',
+                }}
+              >
+                {cardTitle}
+              </span>
+            </div>
+            {pass.reward_available ? (
+              <span
+                style={{
+                  background: isLight ? "rgba(242,101,69,0.15)" : "rgba(255,255,255,0.2)",
+                  color: isLight ? "#c03f22" : "#fff",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: "8px 16px",
+                  borderRadius: 999,
+                  border: isLight ? "1px solid rgba(242,101,69,0.35)" : "1px solid rgba(255,255,255,0.25)",
+                  fontFamily:
+                    'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+                }}
+              >
+                Recompensă gata
+              </span>
+            ) : null}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 8,
+              flex: 1,
+              justifyContent: "center",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: txt.primary,
+                fontFamily:
+                  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+              }}
+            >
+              {stampCount} completate · {remaining} rămase
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: txt.subtle,
+                letterSpacing: 0.4,
+                textTransform: "uppercase" as const,
+                fontFamily:
+                  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+              }}
+            >
+              Fiecare cerc = o ștampilă
+            </span>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap,
+              justifyContent: "center",
+              alignItems: "center",
+              alignContent: "center",
+              width: "100%",
+              padding: "18px 20px",
+              borderRadius: 20,
+              background: panelBg,
+              border: panelBorder,
+              boxShadow: isLight
+                ? "0 8px 28px rgba(20,18,16,0.08)"
+                : "0 12px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            {slots.map((filled, i) => (
+              <div
+                key={String(i)}
+                style={{
+                  width: circleSize,
+                  height: circleSize,
+                  borderRadius: circleSize / 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  ...(filled
+                    ? {
+                        background: isLight ? txt.primary : "rgba(255,255,255,0.95)",
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+                      }
+                    : {
+                        border: stampEmptyBorder,
+                        background: stampEmptyInner,
+                      }),
+                }}
+              >
+                {filled ? (
+                  <span
+                    style={{
+                      color: isLight ? "#fff" : c1,
+                      fontSize: Math.round(circleSize * 0.42),
+                      fontWeight: 900,
+                      fontFamily:
+                        'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+                    }}
+                  >
+                    ✓
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <span
+              style={{
+                color: txt.muted,
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: 0.3,
+                fontFamily:
+                  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+              }}
+            >
+              Total: {stampsRequired} ștampile pentru recompensă
+            </span>
+            <span
+              style={{
+                color: txt.primary,
+                fontSize: 19,
+                fontWeight: 600,
+                textAlign: "center",
+                lineHeight: 1.35,
+                maxWidth: 920,
+                fontFamily:
+                  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+              }}
+            >
+              {rewardDescription}
+            </span>
+          </div>
         </div>
       </div>
     ),
