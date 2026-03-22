@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { resolvePublicAppBaseForWallet } from "@/lib/wallet/google-public-url";
 import { NextResponse } from "next/server";
 import {
   getAddToGoogleWalletUrl,
@@ -67,10 +68,8 @@ export async function GET(request: Request) {
     program.card_name?.trim() || merchant.business_name;
   const classSuffix = `${merchant.slug || merchant.id.replace(/-/g, "_")}_${pass.program_id.replace(/-/g, "")}`;
 
-  // URL publică HTTPS pentru JWT (imagini + linkuri). Pe localhost fără asta, Google refuză save-ul.
-  const appBase =
-    process.env.NEXT_PUBLIC_WALLET_PUBLIC_URL?.replace(/\/$/, "") ||
-    baseUrl.replace(/\/$/, "");
+  // HTTPS public — altfel hero-ul cu ștampile nu intră în JWT (rămâi doar cu QR + puncte default).
+  const appBase = resolvePublicAppBaseForWallet(request) || baseUrl.replace(/\/$/, "");
   const walletData = {
     issuerId,
     /** O clasă Wallet per program → culoarea = cea a cardului din web (card_custom_bg_color). */

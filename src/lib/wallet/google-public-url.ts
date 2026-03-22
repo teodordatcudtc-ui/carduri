@@ -30,6 +30,25 @@ export function isWalletPublicHttpsUrl(url: string): boolean {
   }
 }
 
+/**
+ * Bază publică pentru URL-uri în JWT (imagini, linkuri).
+ * Prioritate: env dedicat → APP_URL → SITE_URL → **originea cererii** (ex. https://stampio.ro
+ * când user deschide /api/wallet/google/add de pe producție, chiar dacă build-ul are APP_URL=localhost).
+ */
+export function resolvePublicAppBaseForWallet(request: Request): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_WALLET_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_SITE_URL,
+    new URL(request.url).origin,
+  ];
+  for (const c of candidates) {
+    const b = c?.trim().replace(/\/$/, "") ?? "";
+    if (b && isWalletPublicHttpsUrl(b)) return b;
+  }
+  return "";
+}
+
 /** Google recomandă max ~9 caractere pentru label la LoyaltyPoints. */
 export function truncateLoyaltyLabel(s: string, maxChars = 9): string {
   const t = s.trim();
