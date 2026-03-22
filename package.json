@@ -21,6 +21,7 @@
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "stripe": "^17.7.0",
     "tailwind-merge": "^2.5.4",
     "uuid": "^11.0.3"
   },

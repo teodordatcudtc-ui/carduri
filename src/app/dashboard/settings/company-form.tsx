@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Upload } from "lucide-react";
+import { isPaidSubscriptionStatus, trialDaysLeft, type MerchantSubscriptionFields } from "@/lib/subscription";
 
 const BUSINESS_TYPES = [
   "Cafenea",
@@ -23,6 +25,13 @@ type Props = {
     business_type: string | null;
     address: string | null;
   };
+  subscription: Pick<
+    MerchantSubscriptionFields,
+    | "trial_ends_at"
+    | "subscription_status"
+    | "subscription_interval"
+    | "subscription_current_period_end"
+  >;
 };
 
 function initials(name: string) {
@@ -39,7 +48,64 @@ function normalizeBusinessType(raw: string | null | undefined): string {
   return "Altele";
 }
 
-export function CompanyForm({ merchantId, userEmail, initial }: Props) {
+function PlanSummary({
+  subscription,
+}: {
+  subscription: Props["subscription"];
+}) {
+  const m: MerchantSubscriptionFields = {
+    trial_ends_at: subscription.trial_ends_at,
+    subscription_status: subscription.subscription_status,
+    subscription_interval: subscription.subscription_interval,
+    subscription_current_period_end: subscription.subscription_current_period_end,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+  };
+  const paid = isPaidSubscriptionStatus(m.subscription_status);
+  const days = trialDaysLeft(m);
+  const periodEnd = m.subscription_current_period_end
+    ? new Date(m.subscription_current_period_end).toLocaleDateString("ro-RO", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
+  return (
+    <>
+      <div
+        className="mb-3.5 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3.5"
+        style={{
+          background: "var(--c-accent-lt)",
+          borderColor: "var(--c-accent-mid)",
+        }}
+      >
+        <div>
+          <div className="text-sm font-bold" style={{ color: "var(--c-accent-dark)" }}>
+            {paid
+              ? `Pro · ${m.subscription_interval === "year" ? "Anual" : "Lunar"}`
+              : "Trial Pro"}
+          </div>
+          <div className="mt-0.5 text-xs opacity-90" style={{ color: "var(--c-accent-dark)" }}>
+            {paid
+              ? periodEnd
+                ? `Activ · perioadă până la ${periodEnd}`
+                : "Abonament activ"
+              : days !== null && days > 0
+                ? `${days} zile rămase din trial · apoi 19€/lună sau 169€/an`
+                : "Trial expirat — alege un plan pentru a continua"}
+          </div>
+        </div>
+        <span className="badge badge-accent shrink-0">{paid ? "Plătit" : "Trial"}</span>
+      </div>
+      <Link href="/dashboard/billing" className="btn btn-md btn-outline inline-flex no-underline">
+        Gestionează abonamentul și facturile
+      </Link>
+    </>
+  );
+}
+
+export function CompanyForm({ merchantId, userEmail, initial, subscription }: Props) {
   const [form, setForm] = useState(() => ({
     ...initial,
     business_type: normalizeBusinessType(initial.business_type),
@@ -321,37 +387,7 @@ export function CompanyForm({ merchantId, userEmail, initial }: Props) {
           <div className="dash-box-title">Plan activ</div>
         </div>
         <div className="dash-box-body">
-          <div
-            className="mb-3.5 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3.5"
-            style={{
-              background: "var(--c-accent-lt)",
-              borderColor: "var(--c-accent-mid)",
-            }}
-          >
-            <div>
-              <div className="text-sm font-bold" style={{ color: "var(--c-accent-dark)" }}>
-                Plan Pro · Lunar
-              </div>
-              <div className="mt-0.5 text-xs opacity-90" style={{ color: "var(--c-accent-dark)" }}>
-                19€/lună · facturare automată în curând
-              </div>
-            </div>
-            <span className="badge badge-accent shrink-0">Activ</span>
-          </div>
-          <div className="flex flex-wrap gap-2.5">
-            <button type="button" className="btn btn-md btn-outline" disabled title="În curând">
-              Upgrade la Anual — 169€/an
-            </button>
-            <button
-              type="button"
-              className="btn btn-md btn-outline"
-              style={{ color: "var(--c-danger)", borderColor: "#f0c0ba", background: "#fbeae8" }}
-              disabled
-              title="În curând"
-            >
-              Anulează abonamentul
-            </button>
-          </div>
+          <PlanSummary subscription={subscription} />
         </div>
       </div>
       </div>

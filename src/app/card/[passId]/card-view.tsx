@@ -118,7 +118,10 @@ export function CardView({ passId, wallet }: Props) {
   const appleUrl = `${baseUrl}/api/wallet/apple/add?pass_id=${passId}`;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative">
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative"
+      style={{ background: "var(--background)", color: "var(--foreground)" }}
+    >
       <div className="w-full max-w-2xl space-y-4">
         {(() => {
           const frontBg = data.card_custom_bg_color ?? data.brand_color;
@@ -248,10 +251,7 @@ export function CardView({ passId, wallet }: Props) {
               </div>
 
               {wallet && (
-                <p
-                  className="text-sm text-center"
-                  style={{ color: "rgba(255,255,255,0.55)" }}
-                >
+                <p className="text-center text-sm text-[var(--c-ink-60)]">
                   Adăugarea în {wallet === "google" ? "Google" : "Apple"} Wallet va fi disponibilă
                   după ce comerciantul activează integrarea. Poți folosi codul de mai sus la casă.
                 </p>
@@ -259,46 +259,30 @@ export function CardView({ passId, wallet }: Props) {
             </div>
           );
         })()}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 shadow-md">
           <a
             href={googleUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-md"
-            style={{
-              border: "1.5px solid rgba(255,255,255,0.18)",
-              background: "rgba(255,255,255,0.06)",
-              color: "var(--c-white)",
-              width: "100%",
-              justifyContent: "center",
-              gap: 10,
-            }}
+            className="btn btn-md btn-accent btn-full"
           >
-            <Smartphone className="w-5 h-5" />
+            <Smartphone className="w-5 h-5" aria-hidden />
             Add to Google Wallet
           </a>
           <a
             href={appleUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-md"
-            style={{
-              border: "1.5px solid rgba(255,255,255,0.18)",
-              background: "rgba(255,255,255,0.06)",
-              color: "var(--c-white)",
-              width: "100%",
-              justifyContent: "center",
-              gap: 10,
-            }}
+            className="btn btn-md btn-outline btn-full"
           >
-            <Smartphone className="w-5 h-5" />
+            <Smartphone className="w-5 h-5" aria-hidden />
             Add to Apple Wallet
           </a>
         </div>
         <p className="text-center text-sm">
           <Link
             href="/"
-            style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}
+            className="text-[var(--c-muted)] no-underline transition hover:text-[var(--c-accent)]"
           >
             StampIO
           </Link>

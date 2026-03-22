@@ -11,6 +11,7 @@ import {
   UserCircle2,
   LogOut,
   Settings,
+  Wallet,
 } from "lucide-react";
 
 type Merchant = { business_name: string } | null;
@@ -78,6 +79,10 @@ export function DashboardSidebar({ merchant }: { merchant: Merchant }) {
             <Link href="/dashboard/clients" className={navClass(active("/dashboard/clients"))}>
               <UserCircle2 aria-hidden />
               Clienți
+            </Link>
+            <Link href="/dashboard/billing" className={navClass(active("/dashboard/billing"))}>
+              <Wallet aria-hidden />
+              Abonament
             </Link>
             <Link
               href="/dashboard/settings"

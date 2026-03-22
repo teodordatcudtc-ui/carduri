@@ -9,6 +9,12 @@ export interface Merchant {
   business_type?: string | null;
   address?: string | null;
   brand_color: string;
+  trial_ends_at?: string;
+  subscription_status?: string;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  subscription_interval?: string | null;
+  subscription_current_period_end?: string | null;
   created_at: string;
   updated_at: string;
 }

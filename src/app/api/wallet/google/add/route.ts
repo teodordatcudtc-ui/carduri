@@ -45,7 +45,9 @@ export async function GET(request: Request) {
         .single(),
       supabase
         .from("loyalty_programs")
-        .select("stamps_required, reward_description")
+        .select(
+          "stamps_required, reward_description, card_name, card_custom_bg_color"
+        )
         .eq("id", pass.program_id)
         .single(),
       supabase
@@ -59,20 +61,31 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${baseUrl}/card/${passId}?wallet=google`);
   }
 
+  const primaryHex =
+    program.card_custom_bg_color?.trim() || merchant.brand_color || "#ea751a";
+  const programTitle =
+    program.card_name?.trim() || merchant.business_name;
+  const classSuffix = `${merchant.slug || merchant.id.replace(/-/g, "_")}_${pass.program_id.replace(/-/g, "")}`;
+
+  const appBase = baseUrl.replace(/\/$/, "");
   const walletData = {
     issuerId,
-    classSuffix: merchant.slug || merchant.id.replace(/-/g, "_"),
+    /** O clasă Wallet per program → culoarea = cea a cardului din web (card_custom_bg_color). */
+    classSuffix,
     objectSuffix: pass.barcode_value,
     businessName: merchant.business_name,
-    programName: merchant.business_name,
+    programName: programTitle,
     logoUrl: merchant.logo_url,
-    hexBackgroundColor: merchant.brand_color,
+    hexBackgroundColor: primaryHex,
     rewardDescription: program.reward_description,
     stampsRequired: program.stamps_required,
     stampCount: pass.stamp_count,
     rewardAvailable: pass.reward_available,
     accountName: customer?.full_name || "Client",
     accountId: customer?.phone || pass.barcode_value,
+    passPublicUrl: `${appBase}/card/${passId}`,
+    passId,
+    appBaseUrl: appBase,
   };
   const origins = [
     requestOrigin,

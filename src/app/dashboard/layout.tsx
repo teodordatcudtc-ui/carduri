@@ -18,7 +18,7 @@ export default async function DashboardLayout({
     .from("merchants")
     .select("id, business_name, slug")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   return (
     <div className="flex min-h-screen flex-col bg-surface md:grid md:min-h-screen md:grid-cols-[192px_1fr]">

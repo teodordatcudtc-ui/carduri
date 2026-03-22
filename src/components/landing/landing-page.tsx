@@ -255,7 +255,7 @@ export function LandingPage({ user }: { user: User | null }) {
                 href="/login"
                 className="flex h-14 w-full min-h-[3.5rem] items-center justify-center rounded-[10px] bg-coral px-4 text-center text-base font-semibold leading-tight text-paper no-underline transition hover:bg-coral-dark sm:px-5"
               >
-                Încearcă 30 zile gratuit
+                Începe trial 30 zile
               </Link>
               <Link
                 href="/support"
@@ -266,7 +266,7 @@ export function LandingPage({ user }: { user: User | null }) {
             </div>
           </motion.div>
           <motion.p variants={heroItem} className="mt-5 text-sm text-ink-muted">
-            Fără card de credit · Setup complet în 5 minute
+            Trial 30 zile inclus · apoi de la 19€/lună · setup în 5 minute
           </motion.p>
           <motion.div
             variants={heroItem}
@@ -492,67 +492,31 @@ export function LandingPage({ user }: { user: User | null }) {
             Planuri flexibile pentru orice locație.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-center text-base text-ink-muted">
-            Fără comisioane ascunse, fără contracte. Poți upgradia oricând.
+            Trial 30 zile la înregistrare, apoi abonament Pro. Fără comisioane ascunse, fără contracte.
           </p>
-          <div className="mt-14 grid gap-6 lg:grid-cols-3">
-            {/* Starter */}
-            <div className="flex flex-col rounded-[20px] border border-ink-15 bg-paper p-7">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-ink-muted">
-                Starter
-              </span>
-              <div className="mt-2 font-display text-5xl font-semibold text-ink">
-                Gratuit
-              </div>
-              <p className="mt-1 text-xs text-ink-muted">pentru totdeauna</p>
-              <div className="my-6 h-px bg-ink-15" />
-              <ul className="flex flex-1 flex-col gap-3 text-[13px] text-ink">
-                {[
-                  "1 program loyalty",
-                  "QR înrolare personalizat",
-                  "Scan manual + cameră",
-                  "Dashboard basic",
-                  "Card digital client",
-                ].map((line) => (
-                  <li key={line} className="flex gap-2">
-                    <Check
-                      className="mt-0.5 h-4 w-4 shrink-0 text-coral"
-                      strokeWidth={2.5}
-                    />
-                    {line}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/login"
-                className="mt-8 flex h-11 w-full items-center justify-center rounded-[10px] border border-ink-15 text-sm font-semibold text-ink-70 no-underline transition hover:bg-ink-6"
-              >
-                Începe gratuit
-              </Link>
-            </div>
-
-            {/* Pro featured */}
+          <div className="mt-14 grid gap-6 lg:mx-auto lg:max-w-[880px] lg:grid-cols-2">
+            {/* Pro Lunar */}
             <div className="relative flex flex-col rounded-[20px] border-2 border-coral bg-paper px-7 pb-7 pt-9 shadow-sm">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-coral px-3 py-1 text-[11px] font-bold text-paper">
                 Cel mai popular
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wide text-coral">
-                Pro
+                Pro Lunar
               </span>
-              <div className="mt-2 font-display text-5xl font-semibold text-coral">
-                19€
-              </div>
-              <p className="mt-1 text-xs text-ink-muted">
-                / lună · trial 30 zile gratis
-              </p>
+              <div className="mt-2 font-display text-5xl font-semibold text-coral">19€</div>
+              <p className="mt-1 text-xs text-ink-muted">/ lună · trial 30 zile</p>
               <div className="my-6 h-px bg-ink-15" />
               <ul className="flex flex-1 flex-col gap-3 text-[13px] text-ink">
                 {[
-                  "Programe loyalty multiple",
-                  "Design avansat al cardului",
-                  "Analytics complet 30 zile",
-                  "Conturi staff nelimitate",
+                  "Clienți nelimitați",
+                  "1 locație",
+                  "Programe loyalty multiple (până la 5 carduri)",
+                  "Design personalizat per card",
+                  "Dashboard cu analytics 30 zile",
+                  "Staff nelimitat",
+                  "QR descărcare PNG + PDF A5",
                   "Remember session client",
-                  "Export PDF QR (A5 print)",
+                  "Suport prin email",
                 ].map((line) => (
                   <li key={line} className="flex gap-2">
                     <Check
@@ -567,28 +531,25 @@ export function LandingPage({ user }: { user: User | null }) {
                 href="/login"
                 className="mt-8 flex h-11 w-full items-center justify-center rounded-[10px] bg-coral text-sm font-semibold text-paper no-underline transition hover:bg-coral-dark"
               >
-                Activează Pro
+                Începe trial 30 zile
               </Link>
             </div>
 
-            {/* Anual */}
+            {/* Pro Anual */}
             <div className="flex flex-col rounded-[20px] border border-ink-15 bg-paper p-7">
               <span className="text-[10px] font-bold uppercase tracking-wide text-ink-muted">
                 Pro Anual
               </span>
-              <div className="mt-2 font-display text-5xl font-semibold text-ink">
-                169€
-              </div>
-              <p className="mt-1 text-xs text-ink-muted">/ an · economisești 2 luni</p>
+              <div className="mt-2 font-display text-5xl font-semibold text-ink">169€</div>
+              <p className="mt-1 text-xs text-ink-muted">/ an</p>
               <div className="my-6 h-px bg-ink-15" />
-              <ul className="flex flex-1 flex-col gap-3 text-[13px] text-ink">
+              <p className="text-[13px] font-semibold text-ink">Tot ce include Lunar, plus:</p>
+              <ul className="mt-3 flex flex-1 flex-col gap-3 text-[13px] text-ink">
                 {[
-                  "Tot din Pro lunar",
-                  "Multi-locație",
-                  "KPI per punct de lucru",
-                  "Integrare notificări",
-                  "Onboarding dedicat",
-                  "SLA prioritar",
+                  "Economisești 59€ față de lunar (echivalent ~14€/lună)",
+                  "Onboarding asistat — te ajutăm să configurezi primul card",
+                  "Suport prioritar email + WhatsApp",
+                  "Export CSV clienți",
                 ].map((line) => (
                   <li key={line} className="flex gap-2">
                     <Check
@@ -600,10 +561,10 @@ export function LandingPage({ user }: { user: User | null }) {
                 ))}
               </ul>
               <Link
-                href="/support"
+                href="/login"
                 className="mt-8 flex h-11 w-full items-center justify-center rounded-[10px] border border-ink-15 text-sm font-semibold text-ink-70 no-underline transition hover:bg-ink-6"
               >
-                Contactează-ne
+                Începe trial 30 zile
               </Link>
             </div>
           </div>
@@ -658,7 +619,7 @@ export function LandingPage({ user }: { user: User | null }) {
               href="/login"
               className="flex h-12 w-full items-center justify-center rounded-[10px] bg-coral text-sm font-semibold text-paper no-underline transition hover:bg-coral-dark"
             >
-              Începe gratuit
+              Începe trial 30 zile
             </Link>
             <Link
               href="/support"

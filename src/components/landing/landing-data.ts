@@ -114,6 +114,10 @@ export const TESTIMONIALS = [
 
 export const FAQ_ITEMS = [
   {
+    q: "Cum funcționează trial-ul de 30 zile?",
+    a: "La crearea contului ai acces complet la toate funcțiile Pro timp de 30 zile. După aceea este necesar un abonament activ (Pro Lunar sau Pro Anual) pentru a continua să folosești dashboard-ul.",
+  },
+  {
     q: "Trebuie să instaleze clienții o aplicație?",
     a: "Nu. Cardul digital se deschide direct în browser, la accesarea link-ului din QR code. Funcționează pe orice telefon, indiferent de sistem de operare.",
   },
@@ -135,6 +139,6 @@ export const FAQ_ITEMS = [
   },
   {
     q: "Cum anulez abonamentul?",
-    a: "Poți anula oricând din setările contului, fără penalizări. Nu există contracte pe termen lung.",
+    a: "Poți anula oricând din pagina Abonament (portal Stripe) sau din setările contului, fără penalizări. Nu există contracte pe termen lung.",
   },
 ];

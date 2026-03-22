@@ -89,7 +89,7 @@ export function LandingNav({ user }: { user: User | null }) {
                 href="/login"
                 className="inline-flex h-10 items-center justify-center rounded-[10px] bg-coral px-5 text-sm font-semibold text-paper no-underline transition hover:bg-coral-dark"
               >
-                Încearcă gratuit
+                Începe trial 30 zile
               </Link>
             </>
           )}
@@ -101,7 +101,7 @@ export function LandingNav({ user }: { user: User | null }) {
               href="/login"
               className="inline-flex h-9 items-center justify-center rounded-[10px] bg-coral px-3 text-xs font-semibold text-paper no-underline sm:text-sm"
             >
-              Încearcă gratuit
+              Începe trial 30 zile
             </Link>
           )}
           {user && (
