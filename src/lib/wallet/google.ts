@@ -360,6 +360,8 @@ export type UpdateGoogleWalletPassParams = {
   stampsRequired: number;
   rewardAvailable: boolean;
   rewardDescription: string;
+  /** PNG public (ex. Supabase Storage) — prioritar față de /api/.../stamp-hero */
+  heroImageUriOverride?: string | null;
 };
 
 /**
@@ -392,12 +394,18 @@ export async function updateGoogleWalletPass(
 
   const resourceId = `${issuerId}.${safeObjectSuffix(objectSuffix)}`;
   const remaining = Math.max(0, updates.stampsRequired - updates.stampCount);
+  const override = updates.heroImageUriOverride?.trim();
+  const overrideOk =
+    override && isWalletPublicHttpsUrl(override) ? override : null;
   const baseUrl = getWalletPublicBaseUrl();
   const patchHeroCandidate = baseUrl
     ? buildStampHeroImageUrl(baseUrl, passId, updates.stampCount)
     : "";
-  const stampHeroUrl =
-    patchHeroCandidate && isWalletPublicHttpsUrl(patchHeroCandidate) ? patchHeroCandidate : null;
+  const fallbackHero =
+    patchHeroCandidate && isWalletPublicHttpsUrl(patchHeroCandidate)
+      ? patchHeroCandidate
+      : null;
+  const stampHeroUrl = overrideOk ?? fallbackHero;
 
   const patchBody: Record<string, unknown> = {
     loyaltyPoints: {

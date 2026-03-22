@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { updateGoogleWalletPass } from "@/lib/wallet/google";
+import { syncGoogleWalletHeroWithSupabase } from "@/lib/wallet/sync-google-wallet-hero";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
       await supabase.from("stamp_events").insert({ pass_id: pass.id });
 
-      await updateGoogleWalletPass(pass.id, pass.barcode_value, {
+      await syncGoogleWalletHeroWithSupabase(pass.id, pass.barcode_value, {
         stampCount: newCount,
         stampsRequired: program?.stamps_required ?? 8,
         rewardAvailable: rewardAvailable,
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
 
       await supabase.from("redemptions").insert({ pass_id: pass.id });
 
-      await updateGoogleWalletPass(pass.id, pass.barcode_value, {
+      await syncGoogleWalletHeroWithSupabase(pass.id, pass.barcode_value, {
         stampCount: 0,
         stampsRequired: programRedeem?.stamps_required ?? 8,
         rewardAvailable: false,
