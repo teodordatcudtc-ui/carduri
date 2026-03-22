@@ -37,17 +37,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Locație negăsită." }, { status: 404 });
     }
 
-    const programQuery = supabase
+    const { data: programRows } = await supabase
       .from("loyalty_programs")
       .select("id, stamps_required, reward_description")
-      .eq("merchant_id", merchant.id);
+      .eq("merchant_id", merchant.id)
+      .order("created_at", { ascending: true });
 
-    const { data: program } = await (program_id
-      ? programQuery.eq("id", program_id).single()
-      : programQuery.order("created_at", { ascending: true }).limit(1).single());
-
-    if (!program) {
+    if (!programRows?.length) {
       return NextResponse.json({ error: "Program negăsit." }, { status: 404 });
+    }
+
+    let program: { id: string; stamps_required: number; reward_description: string };
+    if (program_id) {
+      const found = programRows.find((p) => p.id === program_id);
+      if (!found) {
+        return NextResponse.json({ error: "Program negăsit." }, { status: 404 });
+      }
+      program = found;
+    } else if (programRows.length === 1) {
+      program = programRows[0];
+    } else {
+      return NextResponse.json(
+        { error: "Selectează cardul (program) — locația are mai multe programe." },
+        { status: 400 }
+      );
     }
 
     const phoneNorm = phone.replace(/\s+/g, "").trim();

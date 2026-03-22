@@ -120,7 +120,11 @@ export function QrEnrollBlock({ enrollBaseUrl, businessName, programs }: Props) 
                   </option>
                 ))}
               </select>
-              <span className="field-hint">Clientul va fi înrolat direct pe programul ales.</span>
+              <span className="field-hint">
+                Alege cardul din listă înainte de descărcare — fiecare QR include în link{" "}
+                <code className="rounded bg-[var(--c-sand)] px-1">?program=…</code> ca al doilea card
+                să nu ducă la același card ca primul.
+              </span>
             </div>
           ) : (
             <p className="text-sm text-[var(--c-muted)]">Creează mai întâi un card din secțiunea Carduri.</p>

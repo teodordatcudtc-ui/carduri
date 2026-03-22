@@ -1,6 +1,10 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { EnrollForm } from "./enroll-form";
+import { EnrollProgramPicker } from "./enroll-program-picker";
+
+const programSelect =
+  "id, card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color, card_custom_bg3_color, card_layout, card_noise, card_mesh_gradient, card_footer_color, card_badge_color, card_badge_letter, card_stamp_variant, card_stamp_empty_icon, card_stamp_filled_icon";
 
 export default async function EnrollPage({
   params,
@@ -21,16 +25,33 @@ export default async function EnrollPage({
 
   if (!merchant) notFound();
 
-  const query = supabase
+  const { data: programs } = await supabase
     .from("loyalty_programs")
-    .select(
-      "id, card_name, card_color, stamps_required, reward_description, card_template, card_palette, card_stamp_shape, card_stamp_style, card_custom_bg_color, card_custom_bg2_color, card_custom_bg3_color, card_layout, card_noise, card_mesh_gradient, card_footer_color, card_badge_color, card_badge_letter, card_stamp_variant, card_stamp_empty_icon, card_stamp_filled_icon"
-    )
-    .eq("merchant_id", merchant.id);
+    .select(programSelect)
+    .eq("merchant_id", merchant.id)
+    .order("created_at", { ascending: true });
 
-  const { data: program } = await (programId
-    ? query.eq("id", programId).single()
-    : query.order("created_at", { ascending: true }).limit(1).single());
+  if (!programs?.length) notFound();
+
+  /** Fără ?program=, toate QR-urile ar cădea pe primul program → același card + remember session greșit. */
+  if (!programId && programs.length > 1) {
+    return (
+      <EnrollProgramPicker
+        slug={slug}
+        businessName={merchant.business_name}
+        programs={programs.map((p) => ({
+          id: p.id,
+          card_name: p.card_name,
+          stamps_required: p.stamps_required,
+          reward_description: p.reward_description,
+        }))}
+      />
+    );
+  }
+
+  const program = programId
+    ? programs.find((p) => p.id === programId)
+    : programs[0];
 
   if (!program) notFound();
 
