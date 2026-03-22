@@ -7,6 +7,11 @@
  */
 
 import jwt from "jsonwebtoken";
+import {
+  getWalletPublicBaseUrl,
+  isWalletPublicHttpsUrl,
+  truncateLoyaltyLabel,
+} from "@/lib/wallet/google-public-url";
 import { buildStampHeroImageUrl } from "@/lib/wallet/stamp-hero-url";
 
 /** Fallback logo when merchant has none. Must be a public HTTPS URL that returns an image (no AccessDenied). */
@@ -79,10 +84,9 @@ export function getAddToGoogleWalletUrl(
     ? toHexColor(data.hexBackgroundColor)
     : "#ea751a";
   const rawLogo = data.logoUrl?.trim();
+  /** Google cere HTTPS pentru asset-uri din JWT; http:// poate cauza „Something went wrong”. */
   const logoUri =
-    rawLogo && (rawLogo.startsWith("http://") || rawLogo.startsWith("https://"))
-      ? rawLogo
-      : DEFAULT_LOGO;
+    rawLogo && rawLogo.startsWith("https://") ? rawLogo : DEFAULT_LOGO;
 
   const remaining = Math.max(0, data.stampsRequired - data.stampCount);
   const stampHeroUrl = buildStampHeroImageUrl(
@@ -90,6 +94,10 @@ export function getAddToGoogleWalletUrl(
     data.passId,
     data.stampCount
   );
+  const includeHeroImage = isWalletPublicHttpsUrl(stampHeroUrl);
+  const includePassLink =
+    Boolean(data.passPublicUrl?.trim()) &&
+    isWalletPublicHttpsUrl(data.passPublicUrl!.trim());
 
   const loyaltyClass = {
     id: classId,
@@ -119,11 +127,11 @@ export function getAddToGoogleWalletUrl(
       alternateText: `${data.stampCount}/${data.stampsRequired}`,
     },
     loyaltyPoints: {
-      label: "Ștampile colectate",
+      label: truncateLoyaltyLabel("Ștampile"),
       balance: { int: data.stampCount },
     },
     secondaryLoyaltyPoints: {
-      label: "Până la recompensă",
+      label: truncateLoyaltyLabel("Până la"),
       balance: { int: remaining },
     },
     textModulesData: [
@@ -147,20 +155,23 @@ export function getAddToGoogleWalletUrl(
           ]
         : []),
     ],
-    heroImage: {
-      sourceUri: { uri: stampHeroUrl },
-      contentDescription: {
-        defaultValue: { language: "ro", value: "Ștampile și recompensa" },
-      },
-    },
   };
 
-  if (data.passPublicUrl?.trim()) {
+  if (includeHeroImage) {
+    loyaltyObject.heroImage = {
+      sourceUri: { uri: stampHeroUrl },
+      contentDescription: {
+        defaultValue: { language: "en-US", value: "Stamp progress" },
+      },
+    };
+  }
+
+  if (includePassLink) {
     loyaltyObject.linksModuleData = {
       uris: [
         {
-          uri: data.passPublicUrl.trim(),
-          description: "Deschide cardul în browser",
+          uri: data.passPublicUrl!.trim(),
+          description: "Card in browser",
           id: "open_card_web",
         },
       ],
@@ -204,17 +215,15 @@ export function getWalletPayloadForDebug(
     ? toHexColor(data.hexBackgroundColor)
     : "#ea751a";
   const rawLogo = data.logoUrl?.trim();
-  const logoUri =
-    rawLogo && (rawLogo.startsWith("http://") || rawLogo.startsWith("https://"))
-      ? rawLogo
-      : DEFAULT_LOGO;
+  const logoUriDbg =
+    rawLogo && rawLogo.startsWith("https://") ? rawLogo : DEFAULT_LOGO;
 
   const loyaltyClass = {
     id: classId,
     issuerName: data.businessName.slice(0, 20),
     programName: data.programName.slice(0, 20),
     programLogo: {
-      sourceUri: { uri: logoUri },
+      sourceUri: { uri: logoUriDbg },
       contentDescription: {
         defaultValue: { language: "en", value: data.businessName },
       },
@@ -229,6 +238,11 @@ export function getWalletPayloadForDebug(
     data.passId,
     data.stampCount
   );
+  const includeHeroDbg = isWalletPublicHttpsUrl(stampHeroUrlDbg);
+  const includeLinkDbg =
+    Boolean(data.passPublicUrl?.trim()) &&
+    isWalletPublicHttpsUrl(data.passPublicUrl!.trim());
+
   const loyaltyObjectDbg: Record<string, unknown> = {
     id: objectId,
     classId,
@@ -241,11 +255,11 @@ export function getWalletPayloadForDebug(
       alternateText: `${data.stampCount}/${data.stampsRequired}`,
     },
     loyaltyPoints: {
-      label: "Ștampile colectate",
+      label: truncateLoyaltyLabel("Ștampile"),
       balance: { int: data.stampCount },
     },
     secondaryLoyaltyPoints: {
-      label: "Până la recompensă",
+      label: truncateLoyaltyLabel("Până la"),
       balance: { int: remainingDbg },
     },
     textModulesData: [
@@ -269,19 +283,21 @@ export function getWalletPayloadForDebug(
           ]
         : []),
     ],
-    heroImage: {
+  };
+  if (includeHeroDbg) {
+    loyaltyObjectDbg.heroImage = {
       sourceUri: { uri: stampHeroUrlDbg },
       contentDescription: {
-        defaultValue: { language: "ro", value: "Ștampile și recompensa" },
+        defaultValue: { language: "en-US", value: "Stamp progress" },
       },
-    },
-  };
-  if (data.passPublicUrl?.trim()) {
+    };
+  }
+  if (includeLinkDbg) {
     loyaltyObjectDbg.linksModuleData = {
       uris: [
         {
-          uri: data.passPublicUrl.trim(),
-          description: "Deschide cardul în browser",
+          uri: data.passPublicUrl!.trim(),
+          description: "Card in browser",
           id: "open_card_web",
         },
       ],
@@ -374,21 +390,20 @@ export async function updateGoogleWalletPass(
 
   const resourceId = `${issuerId}.${safeObjectSuffix(objectSuffix)}`;
   const remaining = Math.max(0, updates.stampsRequired - updates.stampCount);
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "";
-  const stampHeroUrl = baseUrl
+  const baseUrl = getWalletPublicBaseUrl();
+  const patchHeroCandidate = baseUrl
     ? buildStampHeroImageUrl(baseUrl, passId, updates.stampCount)
-    : null;
+    : "";
+  const stampHeroUrl =
+    patchHeroCandidate && isWalletPublicHttpsUrl(patchHeroCandidate) ? patchHeroCandidate : null;
 
   const patchBody: Record<string, unknown> = {
     loyaltyPoints: {
-      label: "Ștampile colectate",
+      label: truncateLoyaltyLabel("Ștampile"),
       balance: { int: updates.stampCount },
     },
     secondaryLoyaltyPoints: {
-      label: "Până la recompensă",
+      label: truncateLoyaltyLabel("Până la"),
       balance: { int: remaining },
     },
     barcode: {
@@ -423,7 +438,7 @@ export async function updateGoogleWalletPass(
     patchBody.heroImage = {
       sourceUri: { uri: stampHeroUrl },
       contentDescription: {
-        defaultValue: { language: "ro", value: "Ștampile și recompensa" },
+        defaultValue: { language: "en-US", value: "Stamp progress" },
       },
     };
   }

@@ -67,7 +67,10 @@ export async function GET(request: Request) {
     program.card_name?.trim() || merchant.business_name;
   const classSuffix = `${merchant.slug || merchant.id.replace(/-/g, "_")}_${pass.program_id.replace(/-/g, "")}`;
 
-  const appBase = baseUrl.replace(/\/$/, "");
+  // URL publică HTTPS pentru JWT (imagini + linkuri). Pe localhost fără asta, Google refuză save-ul.
+  const appBase =
+    process.env.NEXT_PUBLIC_WALLET_PUBLIC_URL?.replace(/\/$/, "") ||
+    baseUrl.replace(/\/$/, "");
   const walletData = {
     issuerId,
     /** O clasă Wallet per program → culoarea = cea a cardului din web (card_custom_bg_color). */
