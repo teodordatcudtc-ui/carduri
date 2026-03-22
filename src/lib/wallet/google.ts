@@ -17,13 +17,6 @@ import { buildStampHeroImageUrl } from "@/lib/wallet/stamp-hero-url";
 /** Fallback logo when merchant has none. Must be a public HTTPS URL that returns an image (no AccessDenied). */
 const DEFAULT_LOGO = "https://placehold.co/256x256/ea751a/ffffff/png?text=S";
 
-/**
- * Id modul imagine — folosit în classTemplateInfo (firstTopDetail) ca grila să apară **deasupra** QR,
- * nu la coada template-ului default (unde heroImage e adesea invizibil / sub fold).
- * @see https://developers.google.com/wallet/retail/loyalty-cards/resources/template
- */
-const STAMP_GRID_MODULE_ID = "stamp_grid";
-
 export type GoogleWalletPassData = {
   issuerId: string;
   /** Merchant + program — o clasă per program ca să poți folosi culoarea cardului din app */
@@ -106,7 +99,8 @@ export function getAddToGoogleWalletUrl(
     Boolean(data.passPublicUrl?.trim()) &&
     isWalletPublicHttpsUrl(data.passPublicUrl!.trim());
 
-  const loyaltyClass: Record<string, unknown> = {
+  /** Fără classTemplateInfo.firstTopDetail — acel slot e îngust; imaginea 1032×336 era o „fâșie”. */
+  const loyaltyClass = {
     id: classId,
     issuerName: data.businessName.slice(0, 20),
     programName: data.programName.slice(0, 20),
@@ -120,21 +114,6 @@ export function getAddToGoogleWalletUrl(
     },
     reviewStatus: "UNDER_REVIEW",
     hexBackgroundColor: hexColor,
-    ...(includeStampImage && {
-      classTemplateInfo: {
-        cardBarcodeSectionDetails: {
-          firstTopDetail: {
-            fieldSelector: {
-              fields: [
-                {
-                  fieldPath: `object.imageModulesData['${STAMP_GRID_MODULE_ID}'].mainImage`,
-                },
-              ],
-            },
-          },
-        },
-      },
-    }),
   };
 
   const loyaltyObject: Record<string, unknown> = {
@@ -179,18 +158,14 @@ export function getAddToGoogleWalletUrl(
     ],
   };
 
+  /** Banner wide — același raport 1032×336 ca în brand guidelines Google (nu slot barcode). */
   if (includeStampImage) {
-    loyaltyObject.imageModulesData = [
-      {
-        id: STAMP_GRID_MODULE_ID,
-        mainImage: {
-          sourceUri: { uri: stampHeroUrl },
-          contentDescription: {
-            defaultValue: { language: "en-US", value: "Stamp progress" },
-          },
-        },
+    loyaltyObject.heroImage = {
+      sourceUri: { uri: stampHeroUrl },
+      contentDescription: {
+        defaultValue: { language: "en-US", value: "Progres ștampile" },
       },
-    ];
+    };
   }
 
   if (includePassLink) {
@@ -253,7 +228,7 @@ export function getWalletPayloadForDebug(
   );
   const includeStampDbg = isWalletPublicHttpsUrl(stampHeroUrlDbg);
 
-  const loyaltyClass: Record<string, unknown> = {
+  const loyaltyClass = {
     id: classId,
     issuerName: data.businessName.slice(0, 20),
     programName: data.programName.slice(0, 20),
@@ -265,21 +240,6 @@ export function getWalletPayloadForDebug(
     },
     reviewStatus: "UNDER_REVIEW",
     hexBackgroundColor: hexColor,
-    ...(includeStampDbg && {
-      classTemplateInfo: {
-        cardBarcodeSectionDetails: {
-          firstTopDetail: {
-            fieldSelector: {
-              fields: [
-                {
-                  fieldPath: `object.imageModulesData['${STAMP_GRID_MODULE_ID}'].mainImage`,
-                },
-              ],
-            },
-          },
-        },
-      },
-    }),
   };
   const includeLinkDbg =
     Boolean(data.passPublicUrl?.trim()) &&
@@ -327,17 +287,12 @@ export function getWalletPayloadForDebug(
     ],
   };
   if (includeStampDbg) {
-    loyaltyObjectDbg.imageModulesData = [
-      {
-        id: STAMP_GRID_MODULE_ID,
-        mainImage: {
-          sourceUri: { uri: stampHeroUrlDbg },
-          contentDescription: {
-            defaultValue: { language: "en-US", value: "Stamp progress" },
-          },
-        },
+    loyaltyObjectDbg.heroImage = {
+      sourceUri: { uri: stampHeroUrlDbg },
+      contentDescription: {
+        defaultValue: { language: "en-US", value: "Progres ștampile" },
       },
-    ];
+    };
   }
   if (includeLinkDbg) {
     loyaltyObjectDbg.linksModuleData = {
@@ -482,17 +437,12 @@ export async function updateGoogleWalletPass(
   };
 
   if (stampHeroUrl) {
-    patchBody.imageModulesData = [
-      {
-        id: STAMP_GRID_MODULE_ID,
-        mainImage: {
-          sourceUri: { uri: stampHeroUrl },
-          contentDescription: {
-            defaultValue: { language: "en-US", value: "Stamp progress" },
-          },
-        },
+    patchBody.heroImage = {
+      sourceUri: { uri: stampHeroUrl },
+      contentDescription: {
+        defaultValue: { language: "en-US", value: "Progres ștampile" },
       },
-    ];
+    };
   }
 
   const res = await fetch(
