@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
-import { Copy, Download, Printer } from "lucide-react";
+import { Copy, Download, Loader2, Printer } from "lucide-react";
 
 type Props = {
   enrollBaseUrl: string;
@@ -17,25 +17,51 @@ type Props = {
 };
 
 export function QrEnrollBlock({ enrollBaseUrl, businessName, programs }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(true);
   const [selectedProgramId, setSelectedProgramId] = useState(programs[0]?.id ?? "");
   const enrollUrl = selectedProgramId
     ? `${enrollBaseUrl}?program=${selectedProgramId}`
     : enrollBaseUrl;
 
+  /**
+   * NU condiționa generarea de `canvasRef`: după primul QR afișăm <img>, canvas dispare
+   * și ref devine null → la schimbarea cardului efectul ieșea prematur și QR rămânea același.
+   * `toDataURL` nu are nevoie de canvas în DOM.
+   */
   useEffect(() => {
-    if (!canvasRef.current || !enrollUrl) return;
+    if (!enrollUrl) return;
+    let cancelled = false;
+    setQrLoading(true);
     QRCode.toDataURL(enrollUrl, { width: 280, margin: 2 })
-      .then(setDataUrl)
-      .catch(() => setDataUrl(null));
+      .then((url) => {
+        if (!cancelled) {
+          setDataUrl(url);
+          setQrLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDataUrl(null);
+          setQrLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [enrollUrl]);
 
   function handleDownload() {
     if (!dataUrl) return;
+    const programSlug = programs.find((p) => p.id === selectedProgramId)?.card_name
+      ?.replace(/\s+/g, "-")
+      .toLowerCase()
+      .slice(0, 32);
+    const suffix =
+      selectedProgramId && (programSlug ? `-${programSlug}` : `-${selectedProgramId.slice(0, 8)}`);
     const a = document.createElement("a");
     a.href = dataUrl;
-    a.download = `stampio-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}.png`;
+    a.download = `stampio-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}${suffix ?? ""}.png`;
     a.click();
   }
 
@@ -91,7 +117,13 @@ export function QrEnrollBlock({ enrollBaseUrl, businessName, programs }: Props) 
     doc.text(`Link: ${enrollUrl}`, margin, pageH - 14, { maxWidth: contentW });
     doc.setTextColor(0);
 
-    doc.save(`stampio-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+    const programSlug = programs.find((p) => p.id === selectedProgramId)?.card_name
+      ?.replace(/\s+/g, "-")
+      .toLowerCase()
+      .slice(0, 32);
+    const pdfSuffix =
+      selectedProgramId && (programSlug ? `-${programSlug}` : `-${selectedProgramId.slice(0, 8)}`);
+    doc.save(`stampio-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}${pdfSuffix ?? ""}.pdf`);
   }
 
   return (
@@ -136,11 +168,13 @@ export function QrEnrollBlock({ enrollBaseUrl, businessName, programs }: Props) 
         <div className="mb-4 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--c-muted)]">
           Preview QR
         </div>
-        <div className="dash-qr-box mx-auto">
-          {dataUrl ? (
+        <div className="dash-qr-box mx-auto flex h-40 w-40 items-center justify-center">
+          {qrLoading ? (
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--c-muted)]" aria-hidden />
+          ) : dataUrl ? (
             <img src={dataUrl} alt="QR înrolare" width={160} height={160} className="h-40 w-40 object-contain" />
           ) : (
-            <canvas ref={canvasRef} width={280} height={280} className="h-40 w-40 max-w-full" />
+            <span className="text-xs text-[var(--c-muted)] text-center px-2">Nu s-a putut genera QR-ul</span>
           )}
         </div>
         <p className="mb-4 break-all font-mono text-[11px] text-[var(--c-muted)]">{enrollUrl}</p>
