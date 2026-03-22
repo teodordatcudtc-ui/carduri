@@ -31,9 +31,11 @@ export async function updateSession(request: NextRequest) {
     const onboarding = path.startsWith("/dashboard/onboarding");
     const billing = path.startsWith("/dashboard/billing");
 
+    // Folosește * ca să nu pice query-ul dacă migrarea 009 nu e aplicată încă
+    // (select pe coloane inexistente → eroare → merchant null → loop la onboarding).
     const { data: merchant } = await supabase
       .from("merchants")
-      .select("trial_ends_at, subscription_status")
+      .select("*")
       .eq("user_id", user.id)
       .maybeSingle();
 

@@ -11,8 +11,8 @@ export type SubscriptionStatus =
   | "paused";
 
 export type MerchantSubscriptionFields = {
-  trial_ends_at: string;
-  subscription_status: SubscriptionStatus | string;
+  trial_ends_at?: string | null;
+  subscription_status?: SubscriptionStatus | string | null;
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
   subscription_interval?: string | null;
@@ -31,9 +31,10 @@ export function canAccessDashboard(m: MerchantSubscriptionFields | null | undefi
   if (!m) return false;
   if (isPaidSubscriptionStatus(m.subscription_status)) return true;
   if (m.subscription_status === "past_due" || m.subscription_status === "unpaid") return false;
-  if (!m.trial_ends_at?.trim()) return false;
+  // Fără trial_ends_at (DB vechi sau migrare incompletă) — nu bloca accesul.
+  if (!m.trial_ends_at?.trim()) return true;
   const end = new Date(m.trial_ends_at).getTime();
-  if (Number.isNaN(end)) return false;
+  if (Number.isNaN(end)) return true;
   return end > Date.now();
 }
 
