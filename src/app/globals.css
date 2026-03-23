@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* StampIO — Coral identity */
+  /* Stampy — Coral identity */
   --background: #f8f7f5;
   --foreground: #1e1b18;
   --card: #fefefe;
@@ -60,7 +60,7 @@ body {
 }
 
 /* ============================================================
-   StampIO components (subset)
+   Stampy components (subset)
    ============================================================ */
 .btn {
   display: inline-flex;

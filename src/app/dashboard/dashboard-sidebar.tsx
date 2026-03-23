@@ -40,12 +40,14 @@ export function DashboardSidebar({ merchant }: { merchant: Merchant }) {
         href="/"
         className="dash-sidebar-logo no-underline text-inherit hover:opacity-90 transition-opacity"
       >
-        <span className="dash-sb-mark" aria-hidden>
-          <span className="dash-sb-mark-dot" />
-        </span>
-        <span className="dash-sb-wordmark">
-          Stamp<span className="text-[var(--c-accent)]">IO</span>
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-stampy-dark.svg"
+          alt="Stampy"
+          width={140}
+          height={28}
+          className="h-7 w-auto"
+        />
       </Link>
       {merchant?.business_name ? (
         <div className="dash-sidebar-biz">

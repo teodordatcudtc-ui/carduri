@@ -17,9 +17,11 @@ export async function POST(request: Request) {
       );
     }
     const rawCode = barcode.trim();
-    const passIdFromQr = rawCode.startsWith("STAMPIO:PASS:")
-      ? rawCode.replace("STAMPIO:PASS:", "").trim()
-      : null;
+    const passIdFromQr = rawCode.startsWith("STAMPY:PASS:")
+      ? rawCode.replace("STAMPY:PASS:", "").trim()
+      : rawCode.startsWith("STAMPIO:PASS:")
+        ? rawCode.replace("STAMPIO:PASS:", "").trim()
+        : null;
 
     const supabase = await createClient();
     const {

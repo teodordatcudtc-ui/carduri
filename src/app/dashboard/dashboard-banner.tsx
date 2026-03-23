@@ -4,14 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, X } from "lucide-react";
 
-const STORAGE_KEY = "stampio-dash-banner-dismissed";
+const STORAGE_KEY = "stampy-dash-banner-dismissed";
+const LEGACY_STORAGE_KEY = "stampio-dash-banner-dismissed";
 
 export function DashboardOnboardingBanner({ show }: { show: boolean }) {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
     try {
-      setDismissed(localStorage.getItem(STORAGE_KEY) === "1");
+      const v =
+        localStorage.getItem(STORAGE_KEY) === "1" ||
+        localStorage.getItem(LEGACY_STORAGE_KEY) === "1";
+      setDismissed(v);
     } catch {
       setDismissed(false);
     }
@@ -22,6 +26,7 @@ export function DashboardOnboardingBanner({ show }: { show: boolean }) {
   function dismiss() {
     try {
       localStorage.setItem(STORAGE_KEY, "1");
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
     } catch {
       /* ignore */
     }

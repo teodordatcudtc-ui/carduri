@@ -5,9 +5,9 @@ export default function SupportPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="type-display-md">StampIO — Support</h1>
+          <h1 className="type-display-md">Stampy — Support</h1>
           <p className="text-[var(--c-ink-60)] text-sm">
-            Help for merchants using StampIO digital loyalty cards.
+            Help for merchants using Stampy digital loyalty cards.
           </p>
         </div>
 

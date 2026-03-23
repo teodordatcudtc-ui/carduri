@@ -6,6 +6,10 @@ import { Smartphone, Loader2 } from "lucide-react";
 import QRCode from "qrcode";
 import { PwaInstallPrompt } from "./pwa-install-prompt";
 import LoyaltyCard from "@/app/components/loyalty-card/LoyaltyCard";
+import {
+  passCustomerNameKey,
+  passCustomerNameKeyLegacy,
+} from "@/lib/client-storage-keys";
 
 type Props = { passId: string; wallet: string | null };
 
@@ -87,7 +91,14 @@ export function CardView({ passId, wallet }: Props) {
     // Fallback: pe unele telefoane / browsere join-ul customers poate fi temporar gol.
     // De aceea salvăm numele la înrolare și îl re-afișăm aici dacă e necesar.
     try {
-      const v = localStorage.getItem(`stampio_pass_customer_${passId}`);
+      let v = localStorage.getItem(passCustomerNameKey(passId));
+      if (!v) {
+        v = localStorage.getItem(passCustomerNameKeyLegacy(passId));
+        if (v) {
+          localStorage.setItem(passCustomerNameKey(passId), v);
+          localStorage.removeItem(passCustomerNameKeyLegacy(passId));
+        }
+      }
       if (v) setRememberedCustomerName(v);
     } catch {
       // ignore
@@ -100,7 +111,7 @@ export function CardView({ passId, wallet }: Props) {
   }, [passId]);
 
   useEffect(() => {
-    QRCode.toDataURL(`STAMPIO:PASS:${passId}`, { width: 220, margin: 2 })
+    QRCode.toDataURL(`STAMPY:PASS:${passId}`, { width: 220, margin: 2 })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(null));
   }, [passId]);
@@ -284,7 +295,7 @@ export function CardView({ passId, wallet }: Props) {
             href="/"
             className="text-[var(--c-muted)] no-underline transition hover:text-[var(--c-accent)]"
           >
-            StampIO
+            Stampy
           </Link>
         </p>
       </div>

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { StampioAlertDialog, StampioConfirmDialog } from "@/components/ui/stampio-modal";
+import { StampyAlertDialog, StampyConfirmDialog } from "@/components/ui/stampy-modal";
 
 type Props = {
   programId: string;
@@ -57,7 +57,7 @@ export function DeleteProgramButton({ programId, programTitle, className }: Prop
         <span>Șterge</span>
       </button>
 
-      <StampioConfirmDialog
+      <StampyConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title="Ștergi acest card?"
@@ -74,7 +74,7 @@ export function DeleteProgramButton({ programId, programTitle, className }: Prop
         onConfirm={runDelete}
       />
 
-      <StampioAlertDialog
+      <StampyAlertDialog
         open={errorMessage !== null}
         onOpenChange={(open) => {
           if (!open) setErrorMessage(null);

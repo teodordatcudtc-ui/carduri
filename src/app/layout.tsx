@@ -22,12 +22,12 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-gei
 export const metadata: Metadata = {
   metadataBase: new URL(defaultSite),
   title: {
-    default: "StampIO — Carduri de fidelitate digitale",
-    template: "%s · StampIO",
+    default: "Stampy — Carduri de fidelitate digitale",
+    template: "%s · Stampy",
   },
   description:
     "Programe de fidelizare cu ștampile digitale pentru afaceri locale. QR la casă, card pe telefon.",
-  applicationName: "StampIO",
+  applicationName: "Stampy",
 };
 
 export const viewport: Viewport = {

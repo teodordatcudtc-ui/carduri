@@ -2,12 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
+  BarChart3,
+  CalendarCheck,
   CreditCard,
   ChevronRight,
   Download,
   Scan,
   Plus,
   Star,
+  TrendingUp,
+  Trophy,
   Users,
 } from "lucide-react";
 import { DashboardOnboardingBanner } from "./dashboard-banner";
@@ -158,6 +162,19 @@ export default async function DashboardPage() {
   const maxChartCount = Math.max(1, ...chartDays.map((d) => d.count));
   const maxBarPx = 36;
 
+  const stamps14dTotal = chartDays.reduce((s, d) => s + d.count, 0);
+  const activeDays14 = chartDays.filter((d) => d.count > 0).length;
+  const avgStamps14 = stamps14dTotal / 14;
+  const bestDayRow = chartDays.reduce(
+    (a, b) => (b.count >= a.count ? b : a),
+    chartDays[0]!
+  );
+  const bestDayLabel = new Intl.DateTimeFormat("ro-RO", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(`${bestDayRow.key}T12:00:00`));
+
   const cc = customersCount ?? 0;
   const pc = passesCount ?? 0;
   const visitsMetric = cc > 0 ? (stampsMonth / cc).toFixed(1) : "0";
@@ -278,7 +295,7 @@ export default async function DashboardPage() {
 
       {/* Chart + programs */}
       <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="dash-box lg:col-span-2">
+        <div className="dash-box flex h-full min-h-0 flex-col lg:col-span-2">
           <div className="dash-box-head">
             <div>
               <div className="dash-box-title">Ștampile pe zi</div>
@@ -289,8 +306,8 @@ export default async function DashboardPage() {
               <span className="text-[10px] font-medium uppercase tracking-wide text-ink-muted">azi</span>
             </div>
           </div>
-          <div className="px-[18px] pb-4 pt-3">
-            <div className="flex min-h-[52px] items-end justify-center gap-0.5 sm:gap-1">
+          <div className="flex min-h-0 flex-1 flex-col px-[18px] pb-4 pt-3">
+            <div className="flex min-h-[52px] shrink-0 items-end justify-center gap-0.5 sm:gap-1">
               {chartDays.map((day) => {
                 const h =
                   day.count === 0
@@ -328,7 +345,7 @@ export default async function DashboardPage() {
                 );
               })}
             </div>
-            <div className="mt-3 flex flex-wrap gap-4 border-t border-ink-6 pt-2.5">
+            <div className="mt-3 flex shrink-0 flex-wrap gap-4 border-t border-ink-6 pt-2.5">
               <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
                 <span className="h-2 w-2 rounded-full bg-coral" />
                 Ștampile acordate
@@ -336,6 +353,63 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
                 <span className="h-2 w-2 rounded-full bg-ink-15" />
                 Fără activitate
+              </div>
+            </div>
+            <div className="mt-4 flex min-h-[168px] flex-1 flex-col border-t border-ink-6 pt-4">
+              <div className="grid h-full min-h-[168px] flex-1 auto-rows-[1fr] grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+                <div className="flex h-full min-h-[156px] min-w-0 flex-row items-center gap-4 rounded-xl border border-ink-15 bg-paper px-4 py-6 shadow-[0_1px_0_rgba(30,27,24,0.04)] sm:min-h-[148px]">
+                  <div className="dash-av av-c !h-10 !w-10 shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+                    <BarChart3 strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold leading-tight text-ink">Total</div>
+                    <div className="mt-2 font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-ink sm:text-[30px]">
+                      {stamps14dTotal}
+                    </div>
+                    <div className="mt-2 text-[10px] leading-snug text-ink-muted">ștampile în 14 zile</div>
+                  </div>
+                </div>
+                <div className="flex h-full min-h-[156px] min-w-0 flex-row items-center gap-4 rounded-xl border border-ink-15 bg-paper px-4 py-6 shadow-[0_1px_0_rgba(30,27,24,0.04)] sm:min-h-[148px]">
+                  <div className="dash-av av-b !h-10 !w-10 shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+                    <TrendingUp strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold leading-tight text-ink">Medie zilnică</div>
+                    <div className="mt-2 font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-ink sm:text-[30px]">
+                      {avgStamps14.toFixed(1)}
+                    </div>
+                    <div className="mt-2 text-[10px] leading-snug text-ink-muted">ștampile / zi</div>
+                  </div>
+                </div>
+                <div className="flex h-full min-h-[156px] min-w-0 flex-row items-center gap-4 rounded-xl border border-ink-15 bg-paper px-4 py-6 shadow-[0_1px_0_rgba(30,27,24,0.04)] sm:min-h-[148px]">
+                  <div className="dash-av av-g !h-10 !w-10 shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+                    <CalendarCheck strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold leading-tight text-ink">Zile cu activitate</div>
+                    <div className="mt-2 font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-ink sm:text-[30px]">
+                      {activeDays14}
+                    </div>
+                    <div className="mt-2 text-[10px] leading-snug text-ink-muted">din 14 zile</div>
+                  </div>
+                </div>
+                <div className="flex h-full min-h-[156px] min-w-0 flex-row items-center gap-4 rounded-xl border border-ink-15 bg-paper px-4 py-6 shadow-[0_1px_0_rgba(30,27,24,0.04)] sm:min-h-[148px]">
+                  <div className="dash-av av-y !h-10 !w-10 shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+                    <Trophy strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold leading-tight text-ink">Max într-o zi</div>
+                    <div className="mt-2 font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-coral sm:text-[30px]">
+                      {bestDayRow.count}
+                    </div>
+                    <div
+                      className="mt-2 truncate text-[10px] leading-snug text-ink-muted"
+                      title={bestDayRow.key}
+                    >
+                      {bestDayLabel}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -17,7 +17,7 @@ type ConfirmProps = {
   onConfirm: () => void | Promise<void>;
 };
 
-export function StampioConfirmDialog({
+export function StampyConfirmDialog({
   open,
   onOpenChange,
   title,
@@ -157,7 +157,7 @@ type AlertProps = {
   buttonLabel?: string;
 };
 
-export function StampioAlertDialog({
+export function StampyAlertDialog({
   open,
   onOpenChange,
   title = "Eroare",

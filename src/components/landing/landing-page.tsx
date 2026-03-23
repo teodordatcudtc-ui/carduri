@@ -434,7 +434,7 @@ export function LandingPage({ user }: { user: User | null }) {
             Rezultate reale de la comercianți reali.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-center text-base text-ink-muted">
-            Mii de businessuri locale folosesc StampIO zilnic.
+            Mii de businessuri locale folosesc Stampy zilnic.
           </p>
           <motion.div
             variants={staggerCards}
@@ -588,7 +588,7 @@ export function LandingPage({ user }: { user: User | null }) {
             Întrebări frecvente.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-center text-base text-ink-muted">
-            Răspunsuri clare la cele mai comune întrebări despre StampIO.
+            Răspunsuri clare la cele mai comune întrebări despre Stampy.
           </p>
           <div className="mt-12">
             <LandingFaq />
@@ -638,16 +638,15 @@ export function LandingPage({ user }: { user: User | null }) {
       <footer className="border-t border-white/10 bg-ink py-12 text-paper">
         <div className="mx-auto grid max-w-[1200px] gap-10 px-6 md:grid-cols-3 md:px-12">
           <div>
-            <Link href="/" className="inline-flex items-center gap-3 no-underline">
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-coral"
-                aria-hidden
-              >
-                <span className="h-3.5 w-3.5 rounded-full border-[2.5px] border-paper" />
-              </span>
-              <span className="font-display text-xl font-semibold text-paper">
-                Stamp<span className="text-coral">IO</span>
-              </span>
+            <Link href="/" className="inline-flex items-center gap-2 no-underline">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-stampy-light.svg"
+                alt="Stampy"
+                width={150}
+                height={32}
+                className="h-8 w-auto"
+              />
             </Link>
             <p className="mt-4 font-display text-sm italic text-white/40">
               Fă-ți clienții să se întoarcă.
@@ -701,7 +700,7 @@ export function LandingPage({ user }: { user: User | null }) {
         </div>
         <div className="mx-auto mt-10 flex max-w-[1200px] flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 pt-8 md:px-12">
           <p className="text-xs text-white/30">
-            © 2025 StampIO. Toate drepturile rezervate.
+            © 2025 Stampy. Toate drepturile rezervate.
           </p>
           <p className="text-xs text-white/20">Construit cu Next.js + Supabase</p>
         </div>

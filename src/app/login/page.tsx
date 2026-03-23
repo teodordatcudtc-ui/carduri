@@ -66,13 +66,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <Link href="/" className="nav-logo" style={{ justifyContent: "center" }}>
-            <span className="logo-mark" style={{ width: 40, height: 40 }} aria-hidden>
-              <span className="logo-stamp" />
-            </span>
-            <span>
-              Stamp<span className="nav-logo-io">IO</span>
-            </span>
+          <Link href="/" className="inline-flex justify-center no-underline">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-stampy.svg"
+              alt="Stampy"
+              width={160}
+              height={34}
+              className="mx-auto h-9 w-auto"
+            />
           </Link>
           <p className="mt-2 text-[var(--c-muted)] text-sm">Autentificare comerciant</p>
         </div>

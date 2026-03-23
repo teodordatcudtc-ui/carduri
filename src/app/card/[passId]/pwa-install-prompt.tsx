@@ -72,7 +72,7 @@ export function PwaInstallPrompt() {
         Instalează cardul pe telefon
       </p>
       <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
-        Adaugă StampIO pe ecranul principal ca să vezi cardul rapid și să nu
+        Adaugă Stampy pe ecranul principal ca să vezi cardul rapid și să nu
         îl pierzi.
       </p>
       <button

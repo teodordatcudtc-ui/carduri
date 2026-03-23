@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Smartphone, Loader2 } from "lucide-react";
 import LoyaltyCard from "@/app/components/loyalty-card/LoyaltyCard";
+import {
+  passCustomerNameKey,
+  passCustomerNameKeyLegacy,
+  rememberPassKey,
+  rememberPassKeyLegacy,
+} from "@/lib/client-storage-keys";
 
 type Props = {
   slug: string;
@@ -73,8 +79,9 @@ export function EnrollForm({
   } | null>(null);
   const [rememberChecking, setRememberChecking] = useState(true);
 
-  const rememberKey = useMemo(
-    () => `stampio_pass_${slug}_${programId}`,
+  const rememberKey = useMemo(() => rememberPassKey(slug, programId), [slug, programId]);
+  const rememberKeyLegacy = useMemo(
+    () => rememberPassKeyLegacy(slug, programId),
     [slug, programId]
   );
 
@@ -83,7 +90,14 @@ export function EnrollForm({
 
     async function run() {
       try {
-        const storedPassId = localStorage.getItem(rememberKey);
+        let storedPassId = localStorage.getItem(rememberKey);
+        if (!storedPassId) {
+          storedPassId = localStorage.getItem(rememberKeyLegacy);
+          if (storedPassId) {
+            localStorage.setItem(rememberKey, storedPassId);
+            localStorage.removeItem(rememberKeyLegacy);
+          }
+        }
         if (!storedPassId) return;
 
         // Validăm că pass-ul încă există, ca să nu rămână blocat loading.
@@ -92,6 +106,7 @@ export function EnrollForm({
         });
         if (!res.ok) {
           localStorage.removeItem(rememberKey);
+          localStorage.removeItem(rememberKeyLegacy);
           return;
         }
 
@@ -107,7 +122,7 @@ export function EnrollForm({
     return () => {
       cancelled = true;
     };
-  }, [rememberKey, router]);
+  }, [rememberKey, rememberKeyLegacy, router]);
 
   useEffect(() => {
     if (!done?.pass_id) return;
@@ -115,10 +130,9 @@ export function EnrollForm({
       localStorage.setItem(rememberKey, done.pass_id);
       // Salvăm și numele ca să afișăm titularul corect la următoarea vizită
       // (chiar dacă join-ul din DB e temporar incomplet pe unele browsere).
-      localStorage.setItem(
-        `stampio_pass_customer_${done.pass_id}`,
-        fullName.trim() || "Client"
-      );
+      const pk = passCustomerNameKey(done.pass_id);
+      localStorage.setItem(pk, fullName.trim() || "Client");
+      localStorage.removeItem(passCustomerNameKeyLegacy(done.pass_id));
     } catch {
       // ignore
     }
@@ -207,7 +221,7 @@ export function EnrollForm({
                 textUnderlineOffset: 4,
               }}
             >
-              Vezi cardul tău în StampIO
+              Vezi cardul tău în Stampy
             </Link>
           )}
         </div>

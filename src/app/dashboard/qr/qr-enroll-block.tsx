@@ -61,7 +61,7 @@ export function QrEnrollBlock({ enrollBaseUrl, businessName, programs }: Props) 
       selectedProgramId && (programSlug ? `-${programSlug}` : `-${selectedProgramId.slice(0, 8)}`);
     const a = document.createElement("a");
     a.href = dataUrl;
-    a.download = `stampio-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}${suffix ?? ""}.png`;
+    a.download = `stampy-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}${suffix ?? ""}.png`;
     a.click();
   }
 
@@ -123,7 +123,7 @@ export function QrEnrollBlock({ enrollBaseUrl, businessName, programs }: Props) 
       .slice(0, 32);
     const pdfSuffix =
       selectedProgramId && (programSlug ? `-${programSlug}` : `-${selectedProgramId.slice(0, 8)}`);
-    doc.save(`stampio-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}${pdfSuffix ?? ""}.pdf`);
+    doc.save(`stampy-qr-${businessName.replace(/\s+/g, "-").toLowerCase()}${pdfSuffix ?? ""}.pdf`);
   }
 
   return (

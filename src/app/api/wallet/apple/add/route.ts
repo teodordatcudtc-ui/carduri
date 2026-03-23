@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     // return new NextResponse(buffer, {
     //   headers: {
     //     "Content-Type": "application/vnd.apple.pkpass",
-    //     "Content-Disposition": 'attachment; filename="stampio.pkpass"',
+    //     "Content-Disposition": 'attachment; filename="stampy.pkpass"',
     //   },
     // });
   }

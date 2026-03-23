@@ -6,10 +6,10 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://stampio.ro";
 
 export const metadata: Metadata = {
-  title: "StampIO — Loyalty SaaS pentru HoReCa",
+  title: "Stampy — Loyalty SaaS pentru HoReCa",
   description:
     "QR la casă, card digital pe telefon, ștampilă în 3 secunde. Program de fidelizare fără aplicație instalată — pentru cafenele și restaurante din România.",
-  applicationName: "StampIO",
+  applicationName: "Stampy",
   keywords: [
     "loyalty",
     "fidelizare",
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ro_RO",
     url: siteUrl,
-    siteName: "StampIO",
-    title: "StampIO — Loyalty SaaS pentru HoReCa",
+    siteName: "Stampy",
+    title: "Stampy — Loyalty SaaS pentru HoReCa",
     description:
       "QR la casă, card digital pe telefon, ștampilă în 3 secunde. Fără aplicație instalată.",
     images: [
@@ -32,13 +32,13 @@ export const metadata: Metadata = {
         url: `${siteUrl}/logo.png`,
         width: 512,
         height: 512,
-        alt: "StampIO",
+        alt: "Stampy",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "StampIO — Loyalty SaaS pentru HoReCa",
+    title: "Stampy — Loyalty SaaS pentru HoReCa",
     description:
       "QR la casă, card digital pe telefon, ștampilă în 3 secunde. Fără aplicație instalată.",
     images: [`${siteUrl}/logo.png`],

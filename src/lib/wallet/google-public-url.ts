@@ -32,8 +32,8 @@ export function isWalletPublicHttpsUrl(url: string): boolean {
 
 /**
  * Bază publică pentru URL-uri în JWT (imagini, linkuri).
- * Prioritate: env dedicat → APP_URL → SITE_URL → **originea cererii** (ex. https://stampio.ro
- * când user deschide /api/wallet/google/add de pe producție, chiar dacă build-ul are APP_URL=localhost).
+ * Prioritate: env dedicat → APP_URL → SITE_URL → **originea cererii** (ex. domeniul tău de producție
+ * când user deschide /api/wallet/google/add, chiar dacă build-ul are APP_URL=localhost).
  */
 export function resolvePublicAppBaseForWallet(request: Request): string {
   const candidates = [

@@ -1,4 +1,4 @@
-// Minimal service worker for StampIO PWA
+// Minimal service worker for Stampy PWA
 // Currently just enables the "installable" experience.
 
 self.addEventListener("install", (event) => {

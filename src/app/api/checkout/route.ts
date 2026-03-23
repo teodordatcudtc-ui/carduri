@@ -64,7 +64,7 @@ export async function POST(request: Request) {
           unit_amount: unitAmount,
           recurring: { interval },
           product_data: {
-            name: interval === "year" ? "StampIO Pro Anual" : "StampIO Pro Lunar",
+            name: interval === "year" ? "Stampy Pro Anual" : "Stampy Pro Lunar",
             metadata: { plan: interval === "year" ? "pro_yearly" : "pro_monthly" },
           },
         },

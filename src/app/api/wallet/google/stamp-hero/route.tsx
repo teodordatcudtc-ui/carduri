@@ -105,7 +105,7 @@ export async function GET(request: Request) {
   const stampsRequired = Math.max(1, Math.min(24, program?.stamps_required ?? 8));
   const stampCount = Math.min(pass.stamp_count, stampsRequired);
   const rewardDescription = (program?.reward_description ?? "Recompensă").slice(0, 90);
-  const businessName = (merchant?.business_name ?? "StampIO").slice(0, 28);
+  const businessName = (merchant?.business_name ?? "Stampy").slice(0, 28);
   const cardTitle = (program?.card_name ?? businessName).slice(0, 32);
 
   const c1 = hex(

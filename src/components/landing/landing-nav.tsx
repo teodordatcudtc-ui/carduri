@@ -44,16 +44,15 @@ export function LandingNav({ user }: { user: User | null }) {
       )}
     >
       <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6 md:px-12">
-        <Link href="/" className="flex items-center gap-3 no-underline">
-          <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-coral"
-            aria-hidden
-          >
-            <span className="h-3.5 w-3.5 rounded-full border-[2.5px] border-paper" />
-          </span>
-          <span className="font-display text-[22px] font-semibold tracking-tight text-ink">
-            Stamp<span className="text-coral">IO</span>
-          </span>
+        <Link href="/" className="flex items-center gap-2 no-underline">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-stampy.svg"
+            alt="Stampy"
+            width={150}
+            height={32}
+            className="h-8 w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-10 md:flex" aria-label="Principal">

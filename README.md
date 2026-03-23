@@ -1,4 +1,4 @@
-# StampIO — Digital Loyalty SaaS
+# Stampy — Digital Loyalty SaaS
 
 SaaS B2B pentru programe de fidelizare cu ștampile digitale în **Google Wallet** și **Apple Wallet**. Fără aplicație mobilă separată.
 
